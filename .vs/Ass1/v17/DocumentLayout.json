@@ -1,0 +1,71 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Projects\\CSA\\Assignments\\Ass1\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{118B9FA0-73AC-4CE9-8667-45315DDE26C9}|Ass1\\Ass1.vcxproj|C:\\Projects\\CSA\\Assignments\\Ass1\\Ass1\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{118B9FA0-73AC-4CE9-8667-45315DDE26C9}|Ass1\\Ass1.vcxproj|solutionrelative:Ass1\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{118B9FA0-73AC-4CE9-8667-45315DDE26C9}|Ass1\\Ass1.vcxproj|C:\\Projects\\CSA\\Assignments\\Ass1\\Shaders\\fragment_shader.fs||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{118B9FA0-73AC-4CE9-8667-45315DDE26C9}|Ass1\\Ass1.vcxproj|solutionrelative:Shaders\\fragment_shader.fs||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{118B9FA0-73AC-4CE9-8667-45315DDE26C9}|Ass1\\Ass1.vcxproj|C:\\Projects\\CSA\\Assignments\\Ass1\\Shaders\\vertex_shader.vs||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{118B9FA0-73AC-4CE9-8667-45315DDE26C9}|Ass1\\Ass1.vcxproj|solutionrelative:Shaders\\vertex_shader.vs||{8B382828-6202-11D1-8870-0000F87579D2}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "vertex_shader.vs",
+              "DocumentMoniker": "C:\\Projects\\CSA\\Assignments\\Ass1\\Shaders\\vertex_shader.vs",
+              "RelativeDocumentMoniker": "Shaders\\vertex_shader.vs",
+              "ToolTip": "C:\\Projects\\CSA\\Assignments\\Ass1\\Shaders\\vertex_shader.vs",
+              "RelativeToolTip": "Shaders\\vertex_shader.vs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAcAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2024-07-25T07:57:16.626Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "fragment_shader.fs",
+              "DocumentMoniker": "C:\\Projects\\CSA\\Assignments\\Ass1\\Shaders\\fragment_shader.fs",
+              "RelativeDocumentMoniker": "Shaders\\fragment_shader.fs",
+              "ToolTip": "C:\\Projects\\CSA\\Assignments\\Ass1\\Shaders\\fragment_shader.fs",
+              "RelativeToolTip": "Shaders\\fragment_shader.fs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAcAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2024-07-25T07:57:15.251Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "main.cpp",
+              "DocumentMoniker": "C:\\Projects\\CSA\\Assignments\\Ass1\\Ass1\\main.cpp",
+              "RelativeDocumentMoniker": "Ass1\\main.cpp",
+              "ToolTip": "C:\\Projects\\CSA\\Assignments\\Ass1\\Ass1\\main.cpp",
+              "RelativeToolTip": "Ass1\\main.cpp",
+              "ViewState": "AQIAAAkAAAAAAAAAAAAiwC0AAAA8AAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2024-02-27T12:01:45.022Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
