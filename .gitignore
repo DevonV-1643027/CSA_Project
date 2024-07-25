@@ -6,3 +6,4 @@
 *.vsidx
 .vs/Ass1/FileContentIndex/4cfe806a-04d7-45ed-895f-3c03efa67b84.vsidx
 .vs/Ass1/v17/Browse.VC.opendb
+/imgui-master/
