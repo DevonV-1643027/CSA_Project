@@ -12,6 +12,9 @@
 // Header files
 #include "../Headers/Channel.h"
 #include "../Headers/BackgroundChannel.h"
+#include "../Headers/VirtualCameraChannel.h"
+#include "../Headers/StepAheadAnimationChannel.h"
+#include "../Headers/CharacterAnimationChannel.h"
 
 // Function prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -70,11 +73,17 @@ float vertices[] = {
 
 int main()
 {
-    // Instantiate the BackgroundChannel
+    // Instantiate the channels
     BackgroundChannel backgroundChannel("Background");
+    VirtualCameraChannel virtualCameraChannel("VirtualCamera");
+    StepAheadAnimationChannel stepAheadAnimationChannel("StepAheadAnimation");
+    CharacterAnimationChannel characterAnimationChannel("CharacterAnimation");
 
-    // Print the name to verify inclusion and linking
-    std::cout << "Channel name: " << backgroundChannel.getName() << std::endl;
+    // Print the names to verify inclusion and linking
+    std::cout << "Background Channel name: " << backgroundChannel.getName() << std::endl;
+    std::cout << "Virtual Camera Channel name: " << virtualCameraChannel.getName() << std::endl;
+    std::cout << "Step Ahead Animation Channel name: " << stepAheadAnimationChannel.getName() << std::endl;
+    std::cout << "Character Animation Channel name: " << characterAnimationChannel.getName() << std::endl;
 
     // Initialize GLFW
     glfwInit();
