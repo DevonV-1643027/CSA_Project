@@ -1,6 +1,3 @@
-#define GLFW_EXPOSE_NATIVE_WIN32
-#define GLFW_EXPOSE_NATIVE_WGL
-
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
