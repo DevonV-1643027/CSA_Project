@@ -15,11 +15,14 @@
 #include "../Headers/VirtualCameraChannel.h"
 #include "../Headers/StepAheadAnimationChannel.h"
 #include "../Headers/CharacterAnimationChannel.h"
+#include "../Headers/KeyFrame.h"
+#include "../Headers/Animation.h"
 
 // Function prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 std::string readShaderSource(const std::string& filepath);
+void printChannelKeyFrames(const Channel& channel);
 
 // Settings
 const unsigned int SCR_WIDTH = 800;
@@ -73,17 +76,47 @@ float vertices[] = {
 
 int main()
 {
-    // Instantiate the channels
-    BackgroundChannel backgroundChannel("Background");
-    VirtualCameraChannel virtualCameraChannel("VirtualCamera");
-    StepAheadAnimationChannel stepAheadAnimationChannel("StepAheadAnimation");
-    CharacterAnimationChannel characterAnimationChannel("CharacterAnimation");
+    // Create an animation
+    Animation animation("Test Animation");
 
-    // Print the names to verify inclusion and linking
-    std::cout << "Background Channel name: " << backgroundChannel.getName() << std::endl;
-    std::cout << "Virtual Camera Channel name: " << virtualCameraChannel.getName() << std::endl;
-    std::cout << "Step Ahead Animation Channel name: " << stepAheadAnimationChannel.getName() << std::endl;
-    std::cout << "Character Animation Channel name: " << characterAnimationChannel.getName() << std::endl;
+    // Instantiate the channels
+    auto backgroundChannel = std::make_shared<BackgroundChannel>("Background");
+    auto virtualCameraChannel = std::make_shared<VirtualCameraChannel>("VirtualCamera");
+    auto stepAheadAnimationChannel = std::make_shared<StepAheadAnimationChannel>("StepAheadAnimation");
+    auto characterAnimationChannel = std::make_shared<CharacterAnimationChannel>("CharacterAnimation");
+
+    // Create key frames
+    KeyFrame keyFrame1(0.0f, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    KeyFrame keyFrame2(1.0f, glm::vec3(1.0f, 2.0f, 3.0f), glm::vec3(10.0f, 20.0f, 30.0f), glm::vec3(1.5f, 1.5f, 1.5f));
+
+    // Add key frames to channels
+    backgroundChannel->addKeyFrame(keyFrame1);
+    virtualCameraChannel->addKeyFrame(keyFrame2);
+    stepAheadAnimationChannel->addKeyFrame(keyFrame1);
+    characterAnimationChannel->addKeyFrame(keyFrame2);
+
+    // Add channels to animation
+    animation.addChannel(backgroundChannel);
+    animation.addChannel(virtualCameraChannel);
+    animation.addChannel(stepAheadAnimationChannel);
+    animation.addChannel(characterAnimationChannel);
+
+    // Update and render animation
+    animation.update(0.1f);
+    animation.render();
+
+    // Print key frame data for each channel
+    std::cout << "Background Channel name: " << backgroundChannel->getName() << std::endl;
+    printChannelKeyFrames(*backgroundChannel);
+
+    std::cout << "Virtual Camera Channel name: " << virtualCameraChannel->getName() << std::endl;
+    printChannelKeyFrames(*virtualCameraChannel);
+
+    std::cout << "Step Ahead Animation Channel name: " << stepAheadAnimationChannel->getName() << std::endl;
+    printChannelKeyFrames(*stepAheadAnimationChannel);
+
+    std::cout << "Character Animation Channel name: " << characterAnimationChannel->getName() << std::endl;
+    printChannelKeyFrames(*characterAnimationChannel);
 
     // Initialize GLFW
     glfwInit();
@@ -252,4 +285,15 @@ std::string readShaderSource(const std::string& filepath)
     std::stringstream buffer;
     buffer << file.rdbuf();
     return buffer.str();
+}
+
+// Utility Function to print out Channel Key Frames
+void printChannelKeyFrames(const Channel& channel) {
+    std::cout << channel.getName() << " KeyFrames:" << std::endl;
+    for (const auto& kf : channel.getKeyFrames()) {
+        std::cout << "  KeyFrame - Time: " << kf.timestamp
+            << ", Position: (" << kf.position.x << ", " << kf.position.y << ", " << kf.position.z << ")"
+            << ", Rotation: (" << kf.rotation.x << ", " << kf.rotation.y << ", " << kf.rotation.z << ")"
+            << ", Scale: (" << kf.scale.x << ", " << kf.scale.y << ", " << kf.scale.z << ")" << std::endl;
+    }
 }

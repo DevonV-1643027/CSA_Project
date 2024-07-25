@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <glm/glm.hpp>
+#include "../Headers/KeyFrame.h"
 
 // Base class for different animation channels
 class Channel {
@@ -18,12 +19,13 @@ public:
 
     // Common methods
     const std::string& getName() const { return name; }
-    void addKeyFrame(const glm::mat4& keyFrame) { keyFrames.push_back(keyFrame); }
-    const std::vector<glm::mat4>& getKeyFrames() const { return keyFrames; }
+    void addKeyFrame(const KeyFrame& keyFrame) { keyFrames.push_back(keyFrame); }
+    const std::vector<KeyFrame>& getKeyFrames() const { return keyFrames; }
 
 protected:
     std::string name;
-    std::vector<glm::mat4> keyFrames;  // Store key frames as transformation matrices
+    std::vector<KeyFrame> keyFrames;  // Store key frames
 };
 
 #endif // CHANNEL_H
+
