@@ -1,5 +1,11 @@
 #include "../Headers/Channel.h"
 
-// Implementation of Channel class methods (if any)
-// Since this is a base class with pure virtual methods, 
-// there's no need to implement anything in Channel.cpp at this point.
+std::string Channel::getTypeString() const {
+    switch (channelType) {
+    case BACKGROUND: return "Background";
+    case VIRTUAL_CAMERA: return "Virtual Camera";
+    case STEP_AHEAD_ANIMATION: return "Step Ahead Animation";
+    case CHARACTER_ANIMATION: return "Character Animation";
+    default: return "Unknown";
+    }
+}

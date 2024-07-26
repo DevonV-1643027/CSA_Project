@@ -6,7 +6,7 @@
 
 class VirtualCameraChannel : public Channel {
 public:
-    VirtualCameraChannel(const std::string& name) : Channel(name) {}
+    VirtualCameraChannel(const std::string& name) : Channel(name, ChannelType::VIRTUAL_CAMERA) {}
     void update(float deltaTime) override {
         // Basic update logic for VirtualCameraChannel
     }

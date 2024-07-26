@@ -6,7 +6,7 @@
 
 class StepAheadAnimationChannel : public Channel {
 public:
-    StepAheadAnimationChannel(const std::string& name) : Channel(name) {}
+    StepAheadAnimationChannel(const std::string& name) : Channel(name, ChannelType::STEP_AHEAD_ANIMATION) {}
     void update(float deltaTime) override {
         // Basic update logic for StepAheadAnimationChannel
     }

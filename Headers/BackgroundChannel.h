@@ -6,7 +6,7 @@
 
 class BackgroundChannel : public Channel {
 public:
-    BackgroundChannel(const std::string& name) : Channel(name) {}
+    BackgroundChannel(const std::string& name) : Channel(name, ChannelType::BACKGROUND) {}
     void update(float deltaTime) override {
         // Basic update logic (if any)
     }

@@ -6,7 +6,7 @@
 
 class CharacterAnimationChannel : public Channel {
 public:
-    CharacterAnimationChannel(const std::string& name) : Channel(name) {}
+    CharacterAnimationChannel(const std::string& name) : Channel(name, ChannelType::CHARACTER_ANIMATION) {}
     void update(float deltaTime) override {
         // Basic update logic for CharacterAnimationChannel
     }

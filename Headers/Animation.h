@@ -55,6 +55,14 @@ public:
         return channels;
     }
 
+    void swapChannels(size_t index1, size_t index2) {
+        if (index1 < channels.size() && index2 < channels.size()) {
+            auto temp = channels[index1];
+            channels[index1] = channels[index2];
+            channels[index2] = temp;
+        }
+    }
+
 private:
     std::string name;
     std::vector<std::shared_ptr<Channel>> channels;

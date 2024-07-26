@@ -7,10 +7,17 @@
 #include <glm/glm.hpp>
 #include "../Headers/KeyFrame.h"
 
+enum ChannelType {
+    BACKGROUND,
+    VIRTUAL_CAMERA,
+    STEP_AHEAD_ANIMATION,
+    CHARACTER_ANIMATION
+};
+
 // Base class for different animation channels
 class Channel {
 public:
-    Channel(const std::string& name) : name(name) {}
+    Channel(const std::string& name, ChannelType type) : name(name), channelType(type) {}
     virtual ~Channel() {}
 
     // Virtual methods to be implemented by derived classes
@@ -20,14 +27,15 @@ public:
     // Common methods
     const std::string& getName() const { return name; }
     void setName(const std::string& newName) { name = newName; }
-
+    ChannelType getType() const { return channelType; }
+    std::string getTypeString() const; // Declaration of the function
     void addKeyFrame(const KeyFrame& keyFrame) { keyFrames.push_back(keyFrame); }
     const std::vector<KeyFrame>& getKeyFrames() const { return keyFrames; }
 
 protected:
     std::string name;
+    ChannelType channelType;
     std::vector<KeyFrame> keyFrames;  // Store key frames
 };
 
 #endif // CHANNEL_H
-
