@@ -48,15 +48,13 @@ void renderKeyFrameEditor() {
     ImGui::InputFloat3("Rotation", rotation); // Input Euler angles
     ImGui::InputFloat3("Scale", scale);
 
+    if (ImGui::Button("Close Key-Frame Editor")) {
+        ImGui::CloseCurrentPopup();
+    }
+
     if (ImGui::Button("Add Key-Frame")) {
         // Convert Euler angles to quaternion
         glm::quat rotQuat = eulerToQuaternion(rotation[0], rotation[1], rotation[2]);
-
-        // Debug print to check input values
-        std::cout << "Adding KeyFrame: Time=" << timestamp
-            << ", Position=(" << position[0] << ", " << position[1] << ", " << position[2] << ")"
-            << ", Rotation=(" << rotation[0] << ", " << rotation[1] << ", " << rotation[2] << ")"
-            << ", Scale=(" << scale[0] << ", " << scale[1] << ", " << scale[2] << ")" << std::endl;
 
         // Add new key-frame logic
         KeyFrame newKeyFrame(timestamp, glm::vec3(position[0], position[1], position[2]),
@@ -87,10 +85,6 @@ void renderKeyFrameEditor() {
         }
     }
 
-    if (ImGui::Button("Close Key-Frame Editor")) {
-        ImGui::CloseCurrentPopup();
-    }
-
     ImGui::End();
 }
 
@@ -99,6 +93,7 @@ void renderChannelManager() {
 
     static char channelName[128] = "";
     static int channelType = 0; // 0: Background, 1: VirtualCamera, 2: StepAheadAnimation, 3: CharacterAnimation
+    static bool showKeyFrameEditor = false;
 
     ImGui::InputText("Channel Name##new", channelName, IM_ARRAYSIZE(channelName));
     ImGui::Combo("Channel Type", &channelType, "Background\0Virtual Camera\0Step Ahead Animation\0Character Animation\0");
@@ -156,11 +151,10 @@ void renderChannelManager() {
         }
 
         if (ImGui::Button("Edit Key-Frames")) {
-            // Open the KeyFrame editor for the selected channel
-            ImGui::OpenPopup("Key-Frame Editor");
+            ImGui::OpenPopup(("Key-Frame Editor##" + std::to_string(selectedChannelIndex)).c_str());
         }
 
-        if (ImGui::BeginPopupModal("Key-Frame Editor", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::BeginPopupModal(("Key-Frame Editor##" + std::to_string(selectedChannelIndex)).c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
             renderKeyFrameEditor();
             if (ImGui::Button("Close")) {
                 ImGui::CloseCurrentPopup();
