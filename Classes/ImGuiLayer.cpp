@@ -65,7 +65,6 @@ void renderChannelManager() {
             if (ImGui::Selectable((animation.getChannels()[i]->getName() + "##" + std::to_string(i)).c_str(), isSelected)) {
                 selectedChannelIndex = i;
                 selectedChannel = animation.getChannels()[i];
-                std::cout << "Selected channel: " << selectedChannel->getName() << " at index: " << i << std::endl;
             }
         }
         ImGui::EndListBox();
@@ -87,12 +86,10 @@ void renderChannelManager() {
         }
 
         if (ImGui::Button("Edit Key-Frames")) {
-            std::cout << "Opening key-frame editor for channel: " << selectedChannel->getName() << std::endl;
-            ImGui::OpenPopup("Key-Frame Editor");
+            ImGui::OpenPopup(("Key-Frame Editor##" + std::to_string(selectedChannelIndex)).c_str());
         }
 
-        if (ImGui::BeginPopupModal("Key-Frame Editor", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-            std::cout << "Rendering key-frame editor for channel: " << selectedChannel->getName() << std::endl;
+        if (ImGui::BeginPopupModal(("Key-Frame Editor##" + std::to_string(selectedChannelIndex)).c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
             renderKeyFrameEditor();
             if (ImGui::Button("Close")) {
                 ImGui::CloseCurrentPopup();
@@ -117,15 +114,13 @@ void renderKeyFrameEditor() {
     ImGui::InputFloat3("Rotation", rotation); // Input Euler angles
     ImGui::InputFloat3("Scale", scale);
 
+    if (ImGui::Button("Close")) {
+        ImGui::CloseCurrentPopup();
+    }
+
     if (ImGui::Button("Add Key-Frame")) {
         // Convert Euler angles to quaternion
         glm::quat rotQuat = eulerToQuaternion(rotation[0], rotation[1], rotation[2]);
-
-        // Debug print to check input values
-        std::cout << "Adding KeyFrame: Time=" << timestamp
-            << ", Position=(" << position[0] << ", " << position[1] << ", " << position[2] << ")"
-            << ", Rotation=(" << rotation[0] << ", " << rotation[1] << ", " << rotation[2] << ")"
-            << ", Scale=(" << scale[0] << ", scale[1] << ", scale[2] << ")" << std::endl;
 
         // Add new key-frame logic
         KeyFrame newKeyFrame(timestamp, glm::vec3(position[0], position[1], position[2]),
@@ -158,6 +153,7 @@ void renderKeyFrameEditor() {
 
     ImGui::End();
 }
+
 
 void renderImGui() {
     ImGui_ImplOpenGL3_NewFrame();
