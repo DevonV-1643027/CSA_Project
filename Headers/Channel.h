@@ -19,6 +19,8 @@ public:
 
     // Common methods
     const std::string& getName() const { return name; }
+    void setName(const std::string& newName) { name = newName; }
+
     void addKeyFrame(const KeyFrame& keyFrame) { keyFrames.push_back(keyFrame); }
     const std::vector<KeyFrame>& getKeyFrames() const { return keyFrames; }
 
