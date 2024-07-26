@@ -73,20 +73,51 @@ void renderKeyFrameEditor() {
     ImGui::Separator();
 
     ImGui::Text("Existing Key-Frames");
+    static int selectedKeyFrameIndex = -1;
     if (selectedChannel) {
-        for (const auto& kf : selectedChannel->getKeyFrames()) {
-            // Convert quaternion to Euler angles for display
-            glm::vec3 eulerRot = quaternionToEuler(kf.rotation);
+        if (ImGui::BeginListBox("##keyframeList")) {
+            for (int i = 0; i < selectedChannel->getKeyFrames().size(); ++i) {
+                const auto& kf = selectedChannel->getKeyFrames()[i];
+                glm::vec3 eulerRot = quaternionToEuler(kf.rotation);
+                std::string keyframeLabel = "Time: " + std::to_string(kf.timestamp) +
+                    ", Position: (" + std::to_string(kf.position.x) + ", " + std::to_string(kf.position.y) + ", " + std::to_string(kf.position.z) + ")" +
+                    ", Rotation: (" + std::to_string(eulerRot.x) + ", " + std::to_string(eulerRot.y) + ", " + std::to_string(eulerRot.z) + ")" +
+                    ", Scale: (" + std::to_string(kf.scale.x) + ", " + std::to_string(kf.scale.y) + ", " + std::to_string(kf.scale.z) + ")";
+                if (ImGui::Selectable(keyframeLabel.c_str(), selectedKeyFrameIndex == i)) {
+                    selectedKeyFrameIndex = i;
+                }
+            }
+            ImGui::EndListBox();
+        }
 
-            ImGui::Text("Time: %.3f, Position: (%.3f, %.3f, %.3f), Rotation: (%.3f, %.3f, %.3f), Scale: (%.3f, %.3f, %.3f)",
-                kf.timestamp, kf.position.x, kf.position.y, kf.position.z,
-                eulerRot.x, eulerRot.y, eulerRot.z,
-                kf.scale.x, kf.scale.y, kf.scale.z);
+        if (selectedKeyFrameIndex != -1) {
+            if (ImGui::Button("Update Key-Frame")) {
+                glm::quat rotQuat = eulerToQuaternion(rotation[0], rotation[1], rotation[2]);
+                KeyFrame updatedKeyFrame(timestamp, glm::vec3(position[0], position[1], position[2]), rotQuat, glm::vec3(scale[0], scale[1], scale[2]));
+                selectedChannel->updateKeyFrame(selectedKeyFrameIndex, updatedKeyFrame);
+            }
+
+            if (ImGui::Button("Remove Key-Frame")) {
+                selectedChannel->removeKeyFrame(selectedKeyFrameIndex);
+                selectedKeyFrameIndex = -1; // Clear selection
+            }
+
+            if (ImGui::Button("Move Up") && selectedKeyFrameIndex > 0) {
+                selectedChannel->swapKeyFrames(selectedKeyFrameIndex, selectedKeyFrameIndex - 1);
+                --selectedKeyFrameIndex;
+            }
+
+            if (ImGui::Button("Move Down") && selectedKeyFrameIndex < selectedChannel->getKeyFrames().size() - 1) {
+                selectedChannel->swapKeyFrames(selectedKeyFrameIndex, selectedKeyFrameIndex + 1);
+                ++selectedKeyFrameIndex;
+            }
         }
     }
 
     ImGui::End();
 }
+
+
 
 void renderChannelManager() {
     ImGui::Begin("Channel Manager");

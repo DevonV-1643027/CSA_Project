@@ -32,6 +32,10 @@ public:
     void addKeyFrame(const KeyFrame& keyFrame) { keyFrames.push_back(keyFrame); }
     const std::vector<KeyFrame>& getKeyFrames() const { return keyFrames; }
 
+    void swapKeyFrames(size_t index1, size_t index2);
+    void updateKeyFrame(size_t index, const KeyFrame& keyFrame);
+    void removeKeyFrame(size_t index);
+
 protected:
     std::string name;
     ChannelType channelType;
