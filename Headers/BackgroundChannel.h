@@ -2,11 +2,9 @@
 #ifndef BACKGROUND_CHANNEL_H
 #define BACKGROUND_CHANNEL_H
 
-
 #include <string>
 #include "Channel.h"
 #include "Shader.h"
-
 
 class BackgroundChannel : public Channel {
 public:
@@ -21,7 +19,7 @@ private:
     void setupBackground();
 
     GLuint backgroundVAO, backgroundVBO, textureID;
-    Shader* backgroundShader;
+    Shader* backgroundShader; // Add this line to declare backgroundShader
     bool setupCompleted;  // Flag to check if setup is done
 };
 
