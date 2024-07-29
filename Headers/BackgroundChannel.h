@@ -1,24 +1,28 @@
 #pragma once
-#ifndef BACKGROUNDCHANNEL_H
-#define BACKGROUNDCHANNEL_H
+#ifndef BACKGROUND_CHANNEL_H
+#define BACKGROUND_CHANNEL_H
 
-#include "../Headers/Channel.h"
+
 #include <string>
-#include <glm/glm.hpp>
+#include "Channel.h"
+#include "Shader.h"
+
 
 class BackgroundChannel : public Channel {
 public:
     BackgroundChannel(const std::string& name);
-    virtual ~BackgroundChannel() {}
+    ~BackgroundChannel();
 
-    void loadTexture(const std::string& filePath);
-
+    void loadTexture(const std::string& texturePath);
     virtual void update(float deltaTime) override;
     virtual void render() override;
 
 private:
-    std::string texturePath;
-    // Add other necessary members like texture ID, etc.
+    void setupBackground();
+
+    GLuint backgroundVAO, backgroundVBO, textureID;
+    Shader* backgroundShader;
+    bool setupCompleted;  // Flag to check if setup is done
 };
 
-#endif // BACKGROUNDCHANNEL_H
+#endif // BACKGROUND_CHANNEL_H

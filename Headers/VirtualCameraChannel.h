@@ -2,7 +2,7 @@
 #ifndef VIRTUALCAMERACHANNEL_H
 #define VIRTUALCAMERACHANNEL_H
 
-#include "../Headers/Channel.h"
+#include "Channel.h"
 
 class VirtualCameraChannel : public Channel {
 public:

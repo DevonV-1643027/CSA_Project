@@ -2,7 +2,7 @@
 #ifndef CHARACTERANIMATIONCHANNEL_H
 #define CHARACTERANIMATIONCHANNEL_H
 
-#include "../Headers/Channel.h"
+#include "Channel.h"
 
 class CharacterAnimationChannel : public Channel {
 public:

@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include "../Headers/Channel.h"
+#include "Channel.h"
 
 class Animation {
 public:

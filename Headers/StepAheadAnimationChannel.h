@@ -2,7 +2,7 @@
 #ifndef STEPAHEADANIMATIONCHANNEL_H
 #define STEPAHEADANIMATIONCHANNEL_H
 
-#include "../Headers/Channel.h"
+#include "Channel.h"
 
 class StepAheadAnimationChannel : public Channel {
 public:

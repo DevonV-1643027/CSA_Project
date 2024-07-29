@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include <glm/glm.hpp>
-#include "../Headers/KeyFrame.h"
+#include "KeyFrame.h"
 
 enum ChannelType {
     BACKGROUND,
