@@ -7,7 +7,7 @@ BackgroundChannel::BackgroundChannel(const std::string& name)
 void BackgroundChannel::loadTexture(const std::string& filePath) {
     texturePath = filePath;
     // Load texture logic
-    std::cout << "Loaded texture: " << filePath << std::endl;
+    std::cout << "Loaded texture: " << texturePath << std::endl;
 }
 
 void BackgroundChannel::update(float deltaTime) {
@@ -16,6 +16,12 @@ void BackgroundChannel::update(float deltaTime) {
 }
 
 void BackgroundChannel::render() {
-    // Render background logic
-    std::cout << "Rendering Background Channel: " << getName() << std::endl;
+    // Check if texture is loaded
+    if (texturePath.empty()) {
+		std::cout << "No texture loaded for Background Channel: " << getName() << std::endl;
+	}
+    else {
+        std::cout << "Rendering Background Channel: " << getName() << "with texture: " << texturePath << std::endl;
+    }
+    
 }

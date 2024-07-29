@@ -35,6 +35,27 @@ void setupImGui(GLFWwindow* window) {
     ImGui_ImplOpenGL3_Init("#version 330 core");
 }
 
+void renderBackgroundEditor() {
+    ImGui::Begin("Background Channel Editor");
+
+    static char texturePath[256] = "";
+    ImGui::InputText("Texture Path", texturePath, IM_ARRAYSIZE(texturePath));
+
+    if (ImGui::Button("Load Texture")) {
+        if (selectedChannel && selectedChannel->getType() == BACKGROUND) {
+            std::dynamic_pointer_cast<BackgroundChannel>(selectedChannel)->loadTexture(texturePath);
+            std::fill(std::begin(texturePath), std::end(texturePath), 0);
+        }
+    }
+
+    if (ImGui::Button("Close Background Editor")) {
+        ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::End();
+}
+
+
 void renderKeyFrameEditor() {
     ImGui::Begin("Key-Frame Editor");
 
@@ -125,6 +146,7 @@ void renderChannelManager() {
     static char channelName[128] = "";
     static int channelType = 0; // 0: Background, 1: VirtualCamera, 2: StepAheadAnimation, 3: CharacterAnimation
     static bool showKeyFrameEditor = false;
+    static bool showBackgroundEditor = false;
 
     ImGui::InputText("Channel Name##new", channelName, IM_ARRAYSIZE(channelName));
     ImGui::Combo("Channel Type", &channelType, "Background\0Virtual Camera\0Step Ahead Animation\0Character Animation\0");
@@ -139,6 +161,11 @@ void renderChannelManager() {
         }
         animation.addChannel(newChannel);
         std::fill(std::begin(channelName), std::end(channelName), 0);
+    }
+
+    // Button to trigger the rendering of channels
+    if (ImGui::Button("Render Channels")) {
+        animation.render();
     }
 
     ImGui::Separator();
@@ -182,12 +209,29 @@ void renderChannelManager() {
         }
 
         if (ImGui::Button("Edit Channel")) {
-            ImGui::OpenPopup(("Key-Frame Editor##" + std::to_string(selectedChannelIndex)).c_str());
+            if (selectedChannel->getType() == BACKGROUND) {
+				showBackgroundEditor = true;
+                ImGui::OpenPopup(("Background Channel Editor##" + std::to_string(selectedChannelIndex)).c_str());
+			}
+			else {
+				showKeyFrameEditor = true;
+                ImGui::OpenPopup(("Key-Frame Editor##" + std::to_string(selectedChannelIndex)).c_str());
+			}
         }
 
-        if (ImGui::BeginPopupModal(("Key-Frame Editor##" + std::to_string(selectedChannelIndex)).c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::BeginPopupModal(("Background Channel Editor##" + std::to_string(selectedChannelIndex)).c_str(), &showBackgroundEditor, ImGuiWindowFlags_AlwaysAutoResize)) {
+            renderBackgroundEditor();
+            if (ImGui::Button("Close")) {
+                showBackgroundEditor = false;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+
+        if (ImGui::BeginPopupModal(("Key-Frame Editor##" + std::to_string(selectedChannelIndex)).c_str(), &showKeyFrameEditor, ImGuiWindowFlags_AlwaysAutoResize)) {
             renderKeyFrameEditor();
             if (ImGui::Button("Close")) {
+                showKeyFrameEditor = false;
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
