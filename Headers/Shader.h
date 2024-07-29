@@ -1,15 +1,15 @@
 #pragma once
-#ifndef SHADER_H
-#define SHADER_H
 
 #include <string>
 
 class Shader {
 public:
     GLuint ID;
-    Shader(const std::string& vertexPath, const std::string& fragmentPath);
+    Shader(const char* vertexPath, const char* fragmentPath);
     void use();
+    bool isCompiled() const;
+
+private:
+    bool compiled;
     void checkCompileErrors(GLuint shader, std::string type);
 };
-
-#endif // SHADER_H

@@ -16,7 +16,8 @@ bool initializeGLEW() {
     return true;
 }
 
-BackgroundChannel::BackgroundChannel(const std::string& name) : Channel(name, BACKGROUND), setupCompleted(false), backgroundShader(nullptr) {
+BackgroundChannel::BackgroundChannel(const std::string& name)
+    : Channel(name, BACKGROUND), setupCompleted(false), backgroundShader(nullptr) {
     // Initialization is deferred to the setupBackground method
 }
 
@@ -47,27 +48,15 @@ void BackgroundChannel::loadTexture(const std::string& texturePath) {
     if (data) {
         std::cout << "Loaded texture: " << texturePath << ", Width: " << width << ", Height: " << height << ", Channels: " << nrChannels << std::endl;
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-
-        // Check for errors before generating mipmaps
-        GLenum error = glGetError();
-        if (error != GL_NO_ERROR) {
-            std::cerr << "OpenGL error before generating mipmaps: " << error << std::endl;
-        }
-
         glGenerateMipmap(GL_TEXTURE_2D);
-
-        // Check for errors after generating mipmaps
-        error = glGetError();
-        if (error != GL_NO_ERROR) {
-            std::cerr << "OpenGL error after generating mipmaps: " << error << std::endl;
-        }
-
         stbi_image_free(data);
     }
     else {
-        std::cout << "Failed to load texture: " << texturePath << std::endl;
+        std::cerr << "Failed to load texture: " << texturePath << std::endl;
         stbi_image_free(data);
     }
+
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void BackgroundChannel::update(float deltaTime) {
@@ -75,8 +64,6 @@ void BackgroundChannel::update(float deltaTime) {
 }
 
 void BackgroundChannel::render() {
-    std::cout << "Rendering background channel" << std::endl;
-
     if (!setupCompleted) {
         setupBackground();
         if (!setupCompleted) {
@@ -110,17 +97,10 @@ void BackgroundChannel::render() {
     // Draw the background
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    // Check for OpenGL errors
-    GLenum error = glGetError();
-    if (error != GL_NO_ERROR) {
-        std::cerr << "OpenGL error during rendering: " << error << std::endl;
-    }
-
     // Unbind the vertex array object and shader program (clean up state)
     glBindVertexArray(0);
     glUseProgram(0);
 }
-
 
 void BackgroundChannel::setupBackground() {
     if (!initializeGLEW()) {
@@ -151,6 +131,13 @@ void BackgroundChannel::setupBackground() {
     glEnableVertexAttribArray(1);
 
     backgroundShader = new Shader("../Shaders/background.vs", "../Shaders/background.fs");
+
+    // Check for shader errors
+    if (!backgroundShader->isCompiled()) {
+        std::cerr << "Failed to compile and link shader" << std::endl;
+        setupCompleted = false;
+        return;
+    }
 
     setupCompleted = true;
 }

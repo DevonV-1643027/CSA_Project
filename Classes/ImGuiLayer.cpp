@@ -1,5 +1,4 @@
 #include "../Headers/ImGuiLayer.h"
-#include "../Headers/Animation.h"
 #include "../Headers/BackgroundChannel.h"
 #include "../Headers/VirtualCameraChannel.h"
 #include "../Headers/StepAheadAnimationChannel.h"
@@ -15,7 +14,8 @@
 
 // Globals
 std::shared_ptr<Channel> selectedChannel;
-Animation animation("My Animation");
+Animation animationGUI("GUI Animation");
+Animation* animationMAIN = nullptr;
 
 // Function to convert Euler angles to quaternion
 glm::quat eulerToQuaternion(float pitch, float yaw, float roll) {
@@ -27,7 +27,10 @@ glm::vec3 quaternionToEuler(const glm::quat& quat) {
     return glm::eulerAngles(quat);
 }
 
-void setupImGui(GLFWwindow* window) {
+void setupImGui(GLFWwindow* window, Animation* aMAIN) {
+    animationMAIN = aMAIN;
+    animationGUI = *aMAIN; // Make a copy of the Animation instance
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -162,25 +165,25 @@ void renderChannelManager() {
         case 2: newChannel = std::make_shared<StepAheadAnimationChannel>(channelName); break;
         case 3: newChannel = std::make_shared<CharacterAnimationChannel>(channelName); break;
         }
-        animation.addChannel(newChannel);
+        animationGUI.addChannel(newChannel);
         std::fill(std::begin(channelName), std::end(channelName), 0);
     }
 
     // Button to trigger the rendering of channels
     if (ImGui::Button("Render Channels")) {
-        animation.render();
+        *animationMAIN = animationGUI; // Copy the GUI animation to the main animation
     }
 
     ImGui::Separator();
 
     static int selectedChannelIndex = -1; // Index for the selected channel
     if (ImGui::BeginListBox("Channels")) {
-        for (int i = 0; i < animation.getChannels().size(); ++i) {
+        for (int i = 0; i < animationGUI.getChannels().size(); ++i) {
             bool isSelected = (selectedChannelIndex == i);
-            std::string channelDisplayName = animation.getChannels()[i]->getName() + " (" + animation.getChannels()[i]->getTypeString() + ")";
+            std::string channelDisplayName = animationGUI.getChannels()[i]->getName() + " (" + animationGUI.getChannels()[i]->getTypeString() + ")";
             if (ImGui::Selectable(channelDisplayName.c_str(), isSelected)) {
                 selectedChannelIndex = i;
-                selectedChannel = animation.getChannels()[i];
+                selectedChannel = animationGUI.getChannels()[i];
             }
         }
         ImGui::EndListBox();
@@ -188,11 +191,11 @@ void renderChannelManager() {
 
     // Buttons for moving channels up and down
     if (selectedChannelIndex > 0 && ImGui::Button("Move Up")) {
-        animation.swapChannels(selectedChannelIndex, selectedChannelIndex - 1);
+        animationGUI.swapChannels(selectedChannelIndex, selectedChannelIndex - 1);
         --selectedChannelIndex;
     }
-    if (selectedChannelIndex < animation.getChannels().size() - 1 && ImGui::Button("Move Down")) {
-        animation.swapChannels(selectedChannelIndex, selectedChannelIndex + 1);
+    if (selectedChannelIndex < animationGUI.getChannels().size() - 1 && ImGui::Button("Move Down")) {
+        animationGUI.swapChannels(selectedChannelIndex, selectedChannelIndex + 1);
         ++selectedChannelIndex;
     }
 
@@ -201,12 +204,12 @@ void renderChannelManager() {
         ImGui::InputText("New Channel Name##edit", newChannelName, IM_ARRAYSIZE(newChannelName));
 
         if (ImGui::Button("Change Channel Name")) {
-            animation.updateChannelName(selectedChannel->getName(), newChannelName);
+            animationGUI.updateChannelName(selectedChannel->getName(), newChannelName);
             std::fill(std::begin(newChannelName), std::end(newChannelName), 0);
         }
 
         if (ImGui::Button("Remove Selected Channel")) {
-            animation.removeChannel(selectedChannel->getName());
+            animationGUI.removeChannel(selectedChannel->getName());
             selectedChannel.reset();
             selectedChannelIndex = -1; // Reset the selected index
         }

@@ -35,7 +35,7 @@ void Animation::update(float deltaTime) {
     }
 }
 
-void Animation::render() {
+void Animation::render() { // Updated to accept GLFWwindow*
     for (auto& channel : channels) {
         channel->render();
     }
@@ -51,8 +51,6 @@ const std::vector<std::shared_ptr<Channel>>& Animation::getChannels() const {
 
 void Animation::swapChannels(size_t index1, size_t index2) {
     if (index1 < channels.size() && index2 < channels.size()) {
-        auto temp = channels[index1];
-        channels[index1] = channels[index2];
-        channels[index2] = temp;
+        std::swap(channels[index1], channels[index2]);
     }
 }

@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <GLFW/glfw3.h>
 #include "Channel.h"
 
 class Animation {

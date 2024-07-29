@@ -2,7 +2,6 @@
 #include <iostream>
 #include <stdexcept>
 
-
 WindowManager& WindowManager::getInstance() {
     static WindowManager instance;
     return instance;
@@ -39,4 +38,8 @@ void WindowManager::setFramebufferSizeCallback(GLFWframebuffersizefun callback) 
 
 GLFWwindow* WindowManager::getWindow() const {
     return window;
+}
+
+void WindowManager::setWindow(GLFWwindow* window) {
+    this->window = window;
 }
