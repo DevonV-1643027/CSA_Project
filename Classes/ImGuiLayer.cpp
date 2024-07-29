@@ -181,7 +181,7 @@ void renderChannelManager() {
             selectedChannelIndex = -1; // Reset the selected index
         }
 
-        if (ImGui::Button("Edit Key-Frames")) {
+        if (ImGui::Button("Edit Channel")) {
             ImGui::OpenPopup(("Key-Frame Editor##" + std::to_string(selectedChannelIndex)).c_str());
         }
 
