@@ -75,15 +75,52 @@ void BackgroundChannel::update(float deltaTime) {
 }
 
 void BackgroundChannel::render() {
+    std::cout << "Rendering background channel" << std::endl;
+
     if (!setupCompleted) {
         setupBackground();
+        if (!setupCompleted) {
+            std::cerr << "Background setup not completed. Aborting render." << std::endl;
+            return;
+        }
     }
+
+    // Use the shader program
     glUseProgram(backgroundShader->ID);
+
+    // Bind the vertex array object
     glBindVertexArray(backgroundVAO);
+
+    // Activate the texture unit first before binding texture
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureID);
+
+    // Set the texture uniform in the shader (usually required)
+    GLint textureUniformLocation = glGetUniformLocation(backgroundShader->ID, "ourTexture");
+    if (textureUniformLocation != -1) {
+        glUniform1i(textureUniformLocation, 0);
+    }
+    else {
+        std::cerr << "Could not find texture uniform location." << std::endl;
+    }
+
+    // Clear the screen before drawing (optional, depending on your application's needs)
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Draw the background
     glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    // Check for OpenGL errors
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        std::cerr << "OpenGL error during rendering: " << error << std::endl;
+    }
+
+    // Unbind the vertex array object and shader program (clean up state)
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
+
 
 void BackgroundChannel::setupBackground() {
     if (!initializeGLEW()) {

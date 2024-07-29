@@ -9,6 +9,9 @@
 
 #include <memory>
 #include <iostream>
+#include "../imgui-master/imgui.h"
+#include "../imgui-master/backends/imgui_impl_glfw.h"
+#include "../imgui-master/backends/imgui_impl_opengl3.h"
 
 // Globals
 std::shared_ptr<Channel> selectedChannel;

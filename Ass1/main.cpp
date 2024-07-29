@@ -1,48 +1,39 @@
+#include "../Headers/WindowManager.h"
 #include <iostream>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
 #include "../Headers/ImGuiLayer.h"
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
 int main() {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(1600, 1200, "OpenGL + ImGui", NULL, NULL);
-    if (window == NULL) {
-        std::cerr << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
+    WindowManager& wm = WindowManager::getInstance();
+    try {
+        wm.createWindow(1600, 1200, "OpenGL + ImGui");
     }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "Failed to initialize GLAD" << std::endl;
+    catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
         return -1;
     }
 
-    setupImGui(window);
+    wm.setFramebufferSizeCallback(framebuffer_size_callback);
 
-    while (!glfwWindowShouldClose(window)) {
+    setupImGui(wm.getWindow());
+
+    while (!glfwWindowShouldClose(wm.getWindow())) {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         renderImGui();
 
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(wm.getWindow());
         glfwPollEvents();
     }
 
     cleanupImGui();
 
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(wm.getWindow());
     glfwTerminate();
     return 0;
 }

@@ -4,7 +4,6 @@
 
 #include <string>
 #include <vector>
-#include <glm/glm.hpp>
 #include "KeyFrame.h"
 
 enum ChannelType {
