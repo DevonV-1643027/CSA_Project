@@ -10,8 +10,8 @@ public:
     void update(float deltaTime) override {
         // Basic update logic for VirtualCameraChannel
     }
-    void render() override {
-        // Basic render logic for VirtualCameraChannel
+    virtual void render(const glm::mat4& view, const glm::mat4& projection) override {
+        // Basic render logic for CharacterAnimationChannel
     }
 };
 

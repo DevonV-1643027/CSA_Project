@@ -1,5 +1,6 @@
-#include "../Headers/ImGuiLayer.h"
 #include "../Headers/BackgroundChannel.h"
+#include "../Headers/ImGuiLayer.h"
+
 #include "../Headers/VirtualCameraChannel.h"
 #include "../Headers/StepAheadAnimationChannel.h"
 #include "../Headers/CharacterAnimationChannel.h"
@@ -17,6 +18,8 @@ std::shared_ptr<Channel> selectedChannel;
 Animation animationGUI("GUI Animation");
 Animation* animationMAIN = nullptr;
 
+
+// Helper functions
 // Function to convert Euler angles to quaternion
 glm::quat eulerToQuaternion(float pitch, float yaw, float roll) {
     return glm::quat(glm::vec3(pitch, yaw, roll));
@@ -27,6 +30,20 @@ glm::vec3 quaternionToEuler(const glm::quat& quat) {
     return glm::eulerAngles(quat);
 }
 
+// Function to get the cubemap faces from a directory
+std::vector<std::string> getCubemapFaces(const std::string& directoryPath) {
+    std::vector<std::string> faces(6);
+    faces[0] = directoryPath + "/right.jpg";
+    faces[1] = directoryPath + "/left.jpg";
+    faces[2] = directoryPath + "/top.jpg";
+    faces[3] = directoryPath + "/bottom.jpg";
+    faces[4] = directoryPath + "/front.jpg";
+    faces[5] = directoryPath + "/back.jpg";
+
+    return faces;
+}
+
+// ImGui functions
 void setupImGui(GLFWwindow* window, Animation* aMAIN) {
     animationMAIN = aMAIN;
     animationGUI = *aMAIN; // Make a copy of the Animation instance
@@ -51,6 +68,17 @@ void renderBackgroundEditor() {
         if (selectedChannel && selectedChannel->getType() == BACKGROUND) {
             std::dynamic_pointer_cast<BackgroundChannel>(selectedChannel)->loadTexture(texturePath);
             std::fill(std::begin(texturePath), std::end(texturePath), 0);
+        }
+    }
+
+    static char skyboxPath[256] = "";
+    ImGui::InputText("Skybox Directory Path", skyboxPath, IM_ARRAYSIZE(skyboxPath));
+
+    if (ImGui::Button("Load Skybox")) {
+        if (selectedChannel && selectedChannel->getType() == BACKGROUND) {
+            std::vector<std::string> faces = getCubemapFaces(skyboxPath);
+            std::dynamic_pointer_cast<BackgroundChannel>(selectedChannel)->loadSkybox(faces);
+            std::fill(std::begin(skyboxPath), std::end(skyboxPath), 0);
         }
     }
 

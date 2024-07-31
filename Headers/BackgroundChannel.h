@@ -3,6 +3,8 @@
 #define BACKGROUND_CHANNEL_H
 
 #include <string>
+#include <vector>
+#include <GL/glew.h>
 #include "Channel.h"
 #include "Shader.h"
 
@@ -12,15 +14,17 @@ public:
     ~BackgroundChannel();
 
     void loadTexture(const std::string& texturePath);
+    void loadSkybox(const std::vector<std::string>& faces);
     virtual void update(float deltaTime) override;
-    virtual void render() override;
+    virtual void render(const glm::mat4& view, const glm::mat4& projection) override;  // Update render function
 
 private:
     void setupBackground();
 
     GLuint backgroundVAO, backgroundVBO, textureID;
-    Shader* backgroundShader; // Add this line to declare backgroundShader
-    bool setupCompleted;  // Flag to check if setup is done
+    GLuint skyboxTextureID;
+    Shader* backgroundShader;
+    bool setupCompleted;
 };
 
 #endif // BACKGROUND_CHANNEL_H

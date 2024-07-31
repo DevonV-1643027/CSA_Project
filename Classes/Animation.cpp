@@ -35,9 +35,9 @@ void Animation::update(float deltaTime) {
     }
 }
 
-void Animation::render() { // Updated to accept GLFWwindow*
+void Animation::render(const glm::mat4& view, const glm::mat4& projection) {
     for (auto& channel : channels) {
-        channel->render();
+        channel->render(view, projection);
     }
 }
 

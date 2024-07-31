@@ -1,10 +1,8 @@
+#pragma once
 #ifndef IMGUI_LAYER_H
 #define IMGUI_LAYER_H
 
 #include <memory>
-#include "WindowManager.h"
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
 #include "../Headers/Animation.h"
 
 

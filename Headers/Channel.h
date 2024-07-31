@@ -22,7 +22,7 @@ public:
 
     // Virtual methods to be implemented by derived classes
     virtual void update(float deltaTime) = 0;
-    virtual void render() = 0;
+    virtual void render(const glm::mat4& view, const glm::mat4& projection) = 0;
 
     // Common methods
     const std::string& getName() const { return name; }

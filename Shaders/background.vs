@@ -1,11 +1,14 @@
 #version 330 core
 layout(location = 0) in vec3 aPos;
-layout(location = 1) in vec2 aTexCoord;
 
-out vec2 TexCoord;
+out vec3 TexCoords;
+
+uniform mat4 view;
+uniform mat4 projection;
 
 void main()
 {
-    gl_Position = vec4(aPos, 1.0);
-    TexCoord = aTexCoord;
+    TexCoords = aPos;
+    vec4 pos = projection * view * vec4(aPos, 1.0);
+    gl_Position = pos.xyww; // Ensure depth is always 1.0
 }

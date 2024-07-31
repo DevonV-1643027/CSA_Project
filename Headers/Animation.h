@@ -5,7 +5,6 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include <GLFW/glfw3.h>
 #include "Channel.h"
 
 class Animation {
@@ -17,7 +16,7 @@ public:
     std::shared_ptr<Channel> getChannel(const std::string& channelName) const;
     void updateChannelName(const std::string& oldName, const std::string& newName);
     void update(float deltaTime);
-    void render();
+    void render(const glm::mat4& view, const glm::mat4& projection);
     const std::string& getName() const;
     const std::vector<std::shared_ptr<Channel>>& getChannels() const;
     void swapChannels(size_t index1, size_t index2);
