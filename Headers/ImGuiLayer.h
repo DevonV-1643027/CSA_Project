@@ -5,6 +5,10 @@
 #include <memory>
 #include "../Headers/Animation.h"
 
+#include "../imgui-master/imgui.h"
+#include "../imgui-master/backends/imgui_impl_glfw.h"
+#include "../imgui-master/backends/imgui_impl_opengl3.h"
+
 
 // Forward declare the Channel class to avoid circular dependency
 class Channel;
