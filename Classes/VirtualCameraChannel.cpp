@@ -59,8 +59,12 @@ void VirtualCameraChannel::render(const glm::mat4& view, const glm::mat4& projec
     std::vector<KeyFrame> interpolatedKeyFrames = interpolateKeyFrames();
 
     std::vector<glm::vec3> pathPositions;
+    std::vector<glm::vec3> keyframePositions;
     for (const auto& kf : interpolatedKeyFrames) {
         pathPositions.push_back(kf.position);
+    }
+    for (const auto& kf : keyFrames) {
+        keyframePositions.push_back(kf.position);
     }
 
     // Bind and upload path positions to the VBO
@@ -71,7 +75,7 @@ void VirtualCameraChannel::render(const glm::mat4& view, const glm::mat4& projec
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
 
-    // Ensure the correct shader program is being used
+    // Use the path shader program
     glUseProgram(pathShader->ID);
 
     // Set view and projection matrices
@@ -81,10 +85,35 @@ void VirtualCameraChannel::render(const glm::mat4& view, const glm::mat4& projec
     // Draw the path
     glDrawArrays(GL_LINE_STRIP, 0, pathPositions.size());
 
-    // Unbind the vertex array object and shader program (clean up state)
+    // Unbind the path VAO
+    glBindVertexArray(0);
+
+    // Bind and upload keyframe positions to the VBO
+    glBindVertexArray(keyframeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, keyframeVBO);
+    glBufferData(GL_ARRAY_BUFFER, keyframePositions.size() * sizeof(glm::vec3), keyframePositions.data(), GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+
+    // Enable point size
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    
+    // Use the keyframe shader program
+    glUseProgram(keyframeShader->ID);
+
+    // Set view and projection matrices
+    glUniformMatrix4fv(glGetUniformLocation(keyframeShader->ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(keyframeShader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+    // Draw the keyframes as points
+    glDrawArrays(GL_POINTS, 0, keyframePositions.size());
+
+    // Unbind the keyframe VAO and shader program
     glBindVertexArray(0);
     glUseProgram(0);
 }
+
 
 void VirtualCameraChannel::printKeyframesWithInterpolations() {
     std::cout << "Base Keyframes:\n";
@@ -143,12 +172,17 @@ void VirtualCameraChannel::initPathRendering() {
         return;
     }
 
-    // Initialize VAO and VBO
+    // Initialize VAO and VBO for path
     glGenVertexArrays(1, &pathVAO);
     glGenBuffers(1, &pathVBO);
 
-    // Initialize the shader
+    // Initialize VAO and VBO for keyframes
+    glGenVertexArrays(1, &keyframeVAO);
+    glGenBuffers(1, &keyframeVBO);
+
+    // Initialize the shaders
     pathShader = new Shader("../Shaders/path.vs", "../Shaders/path.fs");
+    keyframeShader = new Shader("../Shaders/keyframe.vs", "../Shaders/keyframe.fs");
 
     isInitialized = true;
 }

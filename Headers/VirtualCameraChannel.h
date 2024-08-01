@@ -23,8 +23,9 @@ private:
     void initPathRendering(); // Initialization function
 
     GLuint pathVAO, pathVBO;
+    GLuint keyframeVAO, keyframeVBO;
     bool isInitialized = false;
-    Shader* pathShader;
+    Shader* pathShader, * keyframeShader;
 };
 
 #endif // VIRTUALCAMERACHANNEL_H
