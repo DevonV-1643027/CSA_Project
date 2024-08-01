@@ -29,6 +29,7 @@ public:
     void setName(const std::string& newName) { name = newName; }
     ChannelType getType() const { return channelType; }
     std::string getTypeString() const; // Declaration of the function
+    
     void addKeyFrame(const KeyFrame& keyFrame) { keyFrames.push_back(keyFrame); }
     const std::vector<KeyFrame>& getKeyFrames() const { return keyFrames; }
 
@@ -36,10 +37,13 @@ public:
     void updateKeyFrame(size_t index, const KeyFrame& keyFrame);
     void removeKeyFrame(size_t index);
 
+    void setFrameRate(float frameRate) { this->frameRate = frameRate; }
+
 protected:
     std::string name;
     ChannelType channelType;
     std::vector<KeyFrame> keyFrames;  // Store key frames
+    float frameRate = 24.0f; // Default frame rate
 };
 
 #endif // CHANNEL_H

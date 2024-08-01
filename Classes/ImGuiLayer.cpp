@@ -101,15 +101,25 @@ void renderKeyFrameEditor() {
     static float position[3] = { 0.0f, 0.0f, 0.0f };
     static float rotation[3] = { 0.0f, 0.0f, 0.0f }; // Euler angles
     static float scale[3] = { 1.0f, 1.0f, 1.0f };
+    static int frameRate = 10; // Default frame rate
 
     ImGui::InputFloat("Time", &timestamp);
     ImGui::InputFloat3("Position", position);
     ImGui::InputFloat3("Rotation", rotation); // Input Euler angles
     ImGui::InputFloat3("Scale", scale);
+    ImGui::InputInt("Frame Rate", &frameRate); // Input frame rate
+
+    ImGui::Separator();
 
     if (ImGui::Button("Close Key-Frame Editor")) {
         ImGui::CloseCurrentPopup();
     }
+    
+    if (ImGui::Button("Set Frame Rate")) {
+		if (selectedChannel) {
+			selectedChannel->setFrameRate(frameRate);
+		}
+	}
 
     if (ImGui::Button("Add Key-Frame")) {
         // Convert Euler angles to quaternion

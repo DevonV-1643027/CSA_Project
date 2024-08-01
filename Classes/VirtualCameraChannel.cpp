@@ -1,20 +1,5 @@
 #include "../Headers/VirtualCameraChannel.h"
 
-void VirtualCameraChannel::addKeyFrame(float time, const glm::vec3& position, const glm::quat& orientation, const glm::vec3& scale) {
-    KeyFrame kf = { time, position, orientation, scale };
-    keyFrames.push_back(kf);
-    std::sort(keyFrames.begin(), keyFrames.end(), [](const KeyFrame& a, const KeyFrame& b) { return a.timestamp < b.timestamp; });
-}
-
-VirtualCameraChannel::KeyFrame VirtualCameraChannel::getKeyFrame(float time) const {
-    for (const auto& kf : keyFrames) {
-        if (kf.timestamp == time) {
-            return kf;
-        }
-    }
-    throw std::runtime_error("Key frame not found");
-}
-
 glm::vec3 VirtualCameraChannel::interpolatePosition(float time) const {
     if (keyFrames.empty()) return glm::vec3(0.0f);
     if (time <= keyFrames.front().timestamp) return keyFrames.front().position;
@@ -62,8 +47,12 @@ void VirtualCameraChannel::update(float deltaTime) {
 void VirtualCameraChannel::render(const glm::mat4& view, const glm::mat4& projection) {
     // Implementation for rendering the camera's trajectory or any visual aids for debugging.
     // This can involve drawing the path, keyframes, etc.
-    // For now: testing interpolation
-    // Print base keyframes
+
+    // Print base keyframes: debugging purposes
+    printKeyframesWithInterpolations();
+}
+
+void VirtualCameraChannel::printKeyframesWithInterpolations() {
     std::cout << "Base Keyframes:\n";
     for (const auto& kf : keyFrames) {
         std::cout << "Time: " << kf.timestamp
@@ -73,23 +62,43 @@ void VirtualCameraChannel::render(const glm::mat4& view, const glm::mat4& projec
     }
 
     // Print interpolated keyframes
-    if (keyFrames.size() < 2) {
+    std::vector<KeyFrame> interpolatedKeyFrames = interpolateKeyFrames();
+    if (interpolatedKeyFrames.size() < 2) {
         std::cout << "Not enough keyframes to interpolate.\n";
         return;
     }
 
     std::cout << "\nInterpolated Keyframes:\n";
-    const int steps = 10; // Number of interpolated steps between each keyframe
-    for (size_t i = 0; i < keyFrames.size() - 1; ++i) {
-        for (int j = 1; j < steps; ++j) {
-            float t = keyFrames[i].timestamp + j * (keyFrames[i + 1].timestamp - keyFrames[i].timestamp) / steps;
-            glm::vec3 interpolatedPosition = interpolatePosition(t);
-            glm::quat interpolatedOrientation = interpolateOrientation(t);
-            glm::vec3 interpolatedScale = interpolateScale(t);
-            std::cout << "Time: " << t
-                << " Position: (" << interpolatedPosition.x << ", " << interpolatedPosition.y << ", " << interpolatedPosition.z << ")"
-                << " Orientation: (" << interpolatedOrientation.x << ", " << interpolatedOrientation.y << ", " << interpolatedOrientation.z << ", " << interpolatedOrientation.w << ")"
-                << " Scale: (" << interpolatedScale.x << ", " << interpolatedScale.y << ", " << interpolatedScale.z << ")\n";
-        }
+    for (const auto& kf : interpolatedKeyFrames) {
+        std::cout << "Time: " << kf.timestamp
+            << " Position: (" << kf.position.x << ", " << kf.position.y << ", " << kf.position.z << ")"
+            << " Orientation: (" << kf.rotation.x << ", " << kf.rotation.y << ", " << kf.rotation.z << ", " << kf.rotation.w << ")"
+            << " Scale: (" << kf.scale.x << ", " << kf.scale.y << ", " << kf.scale.z << ")\n";
     }
 }
+
+std::vector<KeyFrame> VirtualCameraChannel::interpolateKeyFrames() const {
+    std::vector<KeyFrame> interpolatedKeyFrames;
+
+    if (keyFrames.empty()) return interpolatedKeyFrames;
+
+    for (size_t i = 0; i < keyFrames.size() - 1; ++i) {
+        interpolatedKeyFrames.push_back(keyFrames[i]);
+        float startTime = keyFrames[i].timestamp;
+        float endTime = keyFrames[i + 1].timestamp;
+        float interval = (endTime - startTime) / frameRate;
+
+        for (int j = 1; j < frameRate; ++j) {
+            float currentTime = startTime + j * interval;
+            glm::vec3 interpolatedPosition = interpolatePosition(currentTime);
+            glm::quat interpolatedOrientation = interpolateOrientation(currentTime);
+            glm::vec3 interpolatedScale = interpolateScale(currentTime);
+
+            interpolatedKeyFrames.emplace_back(currentTime, interpolatedPosition, interpolatedOrientation, interpolatedScale);
+        }
+    }
+
+    interpolatedKeyFrames.push_back(keyFrames.back());
+    return interpolatedKeyFrames;
+}
+

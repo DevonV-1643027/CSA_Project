@@ -13,17 +13,7 @@
 
 class VirtualCameraChannel : public Channel {
 public:
-    struct KeyFrame {
-        float timestamp;
-        glm::vec3 position;
-        glm::quat rotation;
-        glm::vec3 scale;
-    };
-
     VirtualCameraChannel(const std::string& name) : Channel(name, ChannelType::VIRTUAL_CAMERA) {}
-
-    void addKeyFrame(float time, const glm::vec3& position, const glm::quat& orientation, const glm::vec3& scale);
-    KeyFrame getKeyFrame(float time) const;
 
     glm::vec3 interpolatePosition(float time) const;
     glm::quat interpolateOrientation(float time) const;
@@ -31,9 +21,9 @@ public:
 
     void update(float deltaTime) override;
     void render(const glm::mat4& view, const glm::mat4& projection) override;
-
-private:
-    std::vector<KeyFrame> keyFrames;
+    
+    void printKeyframesWithInterpolations();
+    std::vector<KeyFrame> interpolateKeyFrames() const;
 };
 
 #endif // VIRTUALCAMERACHANNEL_H
