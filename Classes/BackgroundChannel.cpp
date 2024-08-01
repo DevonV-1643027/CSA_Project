@@ -21,8 +21,14 @@ BackgroundChannel::BackgroundChannel(const std::string& name)
 }
 
 BackgroundChannel::~BackgroundChannel() {
-    glDeleteVertexArrays(1, &backgroundVAO);
-    glDeleteBuffers(1, &backgroundVBO);
+    if (backgroundVAO != 0) {
+        glDeleteVertexArrays(1, &backgroundVAO);
+        backgroundVAO = 0; // Avoid dangling reference
+    }
+    if (backgroundVBO != 0) {
+        glDeleteBuffers(1, &backgroundVBO);
+        backgroundVBO = 0; // Avoid dangling reference
+    }
     delete backgroundShader;
 }
 

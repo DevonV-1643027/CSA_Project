@@ -21,7 +21,9 @@ public:
 private:
     void setupBackground();
 
-    GLuint backgroundVAO, backgroundVBO, textureID;
+    GLuint backgroundVAO = 0;
+    GLuint backgroundVBO = 0;
+    GLuint textureID = 0;
     GLuint skyboxTextureID;
     Shader* backgroundShader;
     bool setupCompleted;

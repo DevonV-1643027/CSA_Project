@@ -9,6 +9,9 @@
 #include "../imgui-master/backends/imgui_impl_glfw.h"
 #include "../imgui-master/backends/imgui_impl_opengl3.h"
 
+#include <sstream>
+#include <iomanip>
+
 
 // Forward declare the Channel class to avoid circular dependency
 class Channel;

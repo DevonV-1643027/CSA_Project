@@ -40,6 +40,13 @@ std::vector<std::string> getCubemapFaces(const std::string& directoryPath) {
     return faces;
 }
 
+// Function to format float to a fixed number of decimal places
+std::string formatFloat(float value, int decimalPlaces) {
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(decimalPlaces) << value;
+    return stream.str();
+}
+
 // ImGui functions
 void setupImGui(GLFWwindow* window, Animation* aMAIN) {
     animationMAIN = aMAIN;
@@ -106,7 +113,7 @@ void renderKeyFrameEditor() {
 
     if (ImGui::Button("Add Key-Frame")) {
         // Convert Euler angles to quaternion
-        glm::quat rotQuat = eulerToQuaternion(rotation[0], rotation[1], rotation[2]);
+        glm::quat rotQuat = eulerToQuaternion(glm::radians(rotation[0]), glm::radians(rotation[1]), glm::radians(rotation[2]));
 
         // Add new key-frame logic
         KeyFrame newKeyFrame(timestamp, glm::vec3(position[0], position[1], position[2]),
@@ -127,14 +134,16 @@ void renderKeyFrameEditor() {
     ImGui::Text("Existing Key-Frames");
     static int selectedKeyFrameIndex = -1;
     if (selectedChannel) {
-        if (ImGui::BeginListBox("##keyframeList")) {
+        if (ImGui::BeginListBox("##keyframeList", ImVec2(-FLT_MIN, 10 * ImGui::GetTextLineHeightWithSpacing()))) {
             for (int i = 0; i < selectedChannel->getKeyFrames().size(); ++i) {
                 const auto& kf = selectedChannel->getKeyFrames()[i];
-                glm::vec3 eulerRot = quaternionToEuler(kf.rotation);
-                std::string keyframeLabel = "Time: " + std::to_string(kf.timestamp) +
-                    ", Position: (" + std::to_string(kf.position.x) + ", " + std::to_string(kf.position.y) + ", " + std::to_string(kf.position.z) + ")" +
-                    ", Rotation: (" + std::to_string(eulerRot.x) + ", " + std::to_string(eulerRot.y) + ", " + std::to_string(eulerRot.z) + ")" +
-                    ", Scale: (" + std::to_string(kf.scale.x) + ", " + std::to_string(kf.scale.y) + ", " + std::to_string(kf.scale.z) + ")";
+                glm::vec3 eulerRot = glm::degrees(quaternionToEuler(kf.rotation)); // Convert from radians to degrees
+
+                // Apply rounding
+                std::string keyframeLabel = "Time: " + formatFloat(kf.timestamp, 2) +
+                    ", Position: (" + formatFloat(kf.position.x, 2) + ", " + formatFloat(kf.position.y, 2) + ", " + formatFloat(kf.position.z, 2) + ")" +
+                    ", Rotation: (" + formatFloat(eulerRot.x, 1) + ", " + formatFloat(eulerRot.y, 1) + ", " + formatFloat(eulerRot.z, 1) + ")" +
+                    ", Scale: (" + formatFloat(kf.scale.x, 2) + ", " + formatFloat(kf.scale.y, 2) + ", " + formatFloat(kf.scale.z, 2) + ")";
                 if (ImGui::Selectable(keyframeLabel.c_str(), selectedKeyFrameIndex == i)) {
                     selectedKeyFrameIndex = i;
                 }
@@ -143,8 +152,21 @@ void renderKeyFrameEditor() {
         }
 
         if (selectedKeyFrameIndex != -1) {
+            const auto& kf = selectedChannel->getKeyFrames()[selectedKeyFrameIndex];
+            timestamp = kf.timestamp;
+            position[0] = kf.position.x;
+            position[1] = kf.position.y;
+            position[2] = kf.position.z;
+            glm::vec3 eulerRot = glm::degrees(quaternionToEuler(kf.rotation)); // Convert from radians to degrees
+            rotation[0] = eulerRot.x;
+            rotation[1] = eulerRot.y;
+            rotation[2] = eulerRot.z;
+            scale[0] = kf.scale.x;
+            scale[1] = kf.scale.y;
+            scale[2] = kf.scale.z;
+
             if (ImGui::Button("Update Key-Frame")) {
-                glm::quat rotQuat = eulerToQuaternion(rotation[0], rotation[1], rotation[2]);
+                glm::quat rotQuat = eulerToQuaternion(glm::radians(rotation[0]), glm::radians(rotation[1]), glm::radians(rotation[2]));
                 KeyFrame updatedKeyFrame(timestamp, glm::vec3(position[0], position[1], position[2]), rotQuat, glm::vec3(scale[0], scale[1], scale[2]));
                 selectedChannel->updateKeyFrame(selectedKeyFrameIndex, updatedKeyFrame);
             }
@@ -168,8 +190,6 @@ void renderKeyFrameEditor() {
 
     ImGui::End();
 }
-
-
 
 void renderChannelManager() {
     ImGui::Begin("Channel Manager");
