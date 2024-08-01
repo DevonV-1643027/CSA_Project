@@ -18,14 +18,28 @@ public:
     float MovementSpeed;
     float MouseSensitivity;
     float Zoom;
-    float RotationSpeed;  // Added for rotation speed
+    float RotationSpeed;
 
-    Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch);
+    // Public method to get the instance of the Camera class
+    static Camera& getInstance(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
+        float yaw = -90.0f,
+        float pitch = 0.0f) {
+        static Camera instance(position, up, yaw, pitch);
+        return instance;
+    }
+
+    // Delete copy constructor and assignment operator
+    Camera(const Camera&) = delete;
+    Camera& operator=(const Camera&) = delete;
 
     glm::mat4 GetViewMatrix() const;
     void ProcessKeyboard(GLFWwindow* window, float deltaTime);
 
 private:
+    // Private constructor to prevent instantiation
+    Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch);
+
     void updateCameraVectors();
 };
 

@@ -7,8 +7,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-// Define a global or class-level camera object
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f);
+// Get the singleton instance of Camera and set its initial position and orientation
+Camera& camera = Camera::getInstance(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f);
 
 unsigned int cubeVAO, cubeVBO, cubeShaderProgram;
 float lastX = 800.0f / 2.0f;
@@ -193,6 +193,9 @@ int main() {
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Update the animation
+        animation.update(deltaTime);
 
         // For the skybox, use only the rotational part of the view matrix
         glm::mat4 skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix())); // Remove translation part

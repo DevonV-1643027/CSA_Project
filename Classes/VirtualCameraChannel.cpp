@@ -44,8 +44,40 @@ glm::vec3 VirtualCameraChannel::interpolateScale(float time) const {
 }
 
 void VirtualCameraChannel::update(float deltaTime) {
-    // Implementation for updating the camera based on interpolated values.
-    // This can involve updating the camera's position, orientation, and scale in the scene.
+    // Increment currentTime by deltaTime
+    currentTime += deltaTime;
+
+    // Guard clause for empty keyFrames
+    if (keyFrames.empty()) return;
+
+    // Clamp currentTime to the timestamp of the last keyframe
+    if (currentTime > keyFrames.back().timestamp) {
+        currentTime = keyFrames.back().timestamp;
+    }
+
+    KeyFrame startFrame = keyFrames.front();
+    KeyFrame endFrame = keyFrames.back();
+
+    for (size_t i = 0; i < keyFrames.size() - 1; ++i) {
+        if (keyFrames[i].timestamp <= currentTime && keyFrames[i + 1].timestamp > currentTime) {
+            startFrame = keyFrames[i];
+            endFrame = keyFrames[i + 1];
+            break;
+        }
+    }
+
+    float factor = (currentTime - startFrame.timestamp) / (endFrame.timestamp - startFrame.timestamp);
+    glm::vec3 interpolatedPosition = glm::mix(startFrame.position, endFrame.position, factor);
+    glm::quat interpolatedRotation = glm::slerp(startFrame.rotation, endFrame.rotation, factor);
+
+    Camera& camera = Camera::getInstance();
+    camera.Position = interpolatedPosition;
+
+    // Make the camera look at the cube
+    glm::vec3 cubePosition(0.0f, 0.0f, 0.0f); // Assuming the cube is at the origin
+    camera.Front = glm::normalize(cubePosition - camera.Position);
+    camera.Right = glm::normalize(glm::cross(camera.Front, camera.WorldUp));
+    camera.Up = glm::normalize(glm::cross(camera.Right, camera.Front));
 }
 
 void VirtualCameraChannel::render(const glm::mat4& view, const glm::mat4& projection) {
@@ -112,6 +144,31 @@ void VirtualCameraChannel::render(const glm::mat4& view, const glm::mat4& projec
     // Unbind the keyframe VAO and shader program
     glBindVertexArray(0);
     glUseProgram(0);
+
+    // Call traverse camera path function
+    if (!traversedPath) {
+        traversedPath = true;
+        traversePath(interpolatedKeyFrames);
+    }    
+}
+
+void VirtualCameraChannel::traversePath(std::vector<KeyFrame> interpolatedKeyFrames) {
+    Camera& camera = Camera::getInstance();
+    glm::vec3 cubePosition(0.0f, 0.0f, 0.0f); // Assuming the cube is at the origin
+
+    for (const auto& keyFrame : interpolatedKeyFrames) {
+        camera.Position = keyFrame.position;
+
+        // Make the camera look at the cube
+        camera.Front = glm::normalize(cubePosition - camera.Position);
+        camera.Right = glm::normalize(glm::cross(camera.Front, camera.WorldUp));
+        camera.Up = glm::normalize(glm::cross(camera.Right, camera.Front));
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(16)); // Simulate time progression
+
+        // Update or render the scene to reflect the new camera position
+        // renderOrUpdateScene(); // Hypothetical function call
+    }
 }
 
 

@@ -6,6 +6,9 @@
 #include "Shader.h"
 #include <iostream>
 #include <glm/gtc/type_ptr.hpp>
+#include "Camera.h"
+#include <thread>
+#include <chrono>
 
 class VirtualCameraChannel : public Channel {
 public:
@@ -21,6 +24,10 @@ private:
     glm::vec3 interpolateScale(float time) const;
 
     void initPathRendering(); // Initialization function
+
+    float currentTime = 0.0f;
+    bool traversedPath = false;
+    void traversePath(std::vector<KeyFrame> interpolatedKeyFrames);
 
     GLuint pathVAO, pathVBO;
     GLuint keyframeVAO, keyframeVBO;
