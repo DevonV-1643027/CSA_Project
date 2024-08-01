@@ -21,9 +21,12 @@ public:
     const std::vector<std::shared_ptr<Channel>>& getChannels() const;
     void swapChannels(size_t index1, size_t index2);
 
+    void setSkyboxView(const glm::mat4& view) { skyboxView = view; }
+
 private:
     std::string name;
     std::vector<std::shared_ptr<Channel>> channels;
+    glm::mat4 skyboxView;
 };
 
 #endif // ANIMATION_H

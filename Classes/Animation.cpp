@@ -37,7 +37,11 @@ void Animation::update(float deltaTime) {
 
 void Animation::render(const glm::mat4& view, const glm::mat4& projection) {
     for (auto& channel : channels) {
-        channel->render(view, projection);
+        // check for background channel
+        if (channel->getType() == 0)
+            channel->render(skyboxView, projection);
+        else
+            channel->render(view, projection);
     }
 }
 

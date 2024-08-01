@@ -1,8 +1,4 @@
 #include "../Headers/BackgroundChannel.h"
-#include "../Headers/Shader.h"
-#include <stb_image.h> // For loading images
-#include <iostream>
-#include <glm/gtc/type_ptr.hpp>
 
 // Function to initialize GLEW
 bool initializeGLEW() {

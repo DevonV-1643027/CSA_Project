@@ -224,8 +224,11 @@ int main() {
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), 1600.0f / 1200.0f, 0.1f, 100.0f);
 
+        // skyboxview
+        animation.setSkyboxView(skyboxView);
+
         // Render the skybox
-        animation.render(skyboxView, projection);
+        animation.render(view, projection);
 
         // Render the cube
         renderCube(view, projection);

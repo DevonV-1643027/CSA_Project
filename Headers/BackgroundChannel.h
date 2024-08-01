@@ -7,6 +7,9 @@
 #include <GL/glew.h>
 #include "Channel.h"
 #include "Shader.h"
+#include <glm/gtc/type_ptr.hpp>
+#include <stb_image.h> // For loading images
+#include <iostream>
 
 class BackgroundChannel : public Channel {
 public:
