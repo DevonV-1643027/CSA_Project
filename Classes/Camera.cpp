@@ -1,7 +1,7 @@
 #include "../Headers/Camera.h"
 
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
-    : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(2.5f), MouseSensitivity(0.1f), Zoom(45.0f) {
+    : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(2.5f), MouseSensitivity(0.1f), Zoom(45.0f), RotationSpeed(50.0f) {
     Position = position;
     WorldUp = up;
     Yaw = yaw;
@@ -15,6 +15,9 @@ glm::mat4 Camera::GetViewMatrix() const {
 
 void Camera::ProcessKeyboard(GLFWwindow* window, float deltaTime) {
     float velocity = MovementSpeed * deltaTime;
+    float rotationVelocity = RotationSpeed * deltaTime;
+
+    // Handle movement
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         Position += Front * velocity;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -23,31 +26,23 @@ void Camera::ProcessKeyboard(GLFWwindow* window, float deltaTime) {
         Position -= Right * velocity;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         Position += Right * velocity;
-}
 
-void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch) {
-    xoffset *= MouseSensitivity;
-    yoffset *= MouseSensitivity;
+    // Handle rotation
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        Yaw -= rotationVelocity;
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        Yaw += rotationVelocity;
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        Pitch += rotationVelocity;
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        Pitch -= rotationVelocity;
 
-    Yaw += xoffset;
-    Pitch += yoffset;
-
-    if (constrainPitch) {
-        if (Pitch > 89.0f)
-            Pitch = 89.0f;
-        if (Pitch < -89.0f)
-            Pitch = -89.0f;
-    }
+    if (Pitch > 89.0f)
+        Pitch = 89.0f;
+    if (Pitch < -89.0f)
+        Pitch = -89.0f;
 
     updateCameraVectors();
-}
-
-void Camera::ProcessMouseScroll(float yoffset) {
-    Zoom -= yoffset;
-    if (Zoom < 1.0f)
-        Zoom = 1.0f;
-    if (Zoom > 45.0f)
-        Zoom = 45.0f;
 }
 
 void Camera::updateCameraVectors() {

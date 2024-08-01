@@ -18,13 +18,12 @@ public:
     float MovementSpeed;
     float MouseSensitivity;
     float Zoom;
+    float RotationSpeed;  // Added for rotation speed
 
     Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch);
 
     glm::mat4 GetViewMatrix() const;
     void ProcessKeyboard(GLFWwindow* window, float deltaTime);
-    void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
-    void ProcessMouseScroll(float yoffset);
 
 private:
     void updateCameraVectors();

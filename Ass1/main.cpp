@@ -19,27 +19,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-    ImGuiIO& io = ImGui::GetIO();
-    if (io.WantCaptureMouse) {
-        firstMouse = true;
-        return;
-    }
-
-    if (firstMouse) {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
-    lastX = xpos;
-    lastY = ypos;
-
-    camera.ProcessMouseMovement(xoffset, yoffset);
-}
-
 void processInput(GLFWwindow* window, float deltaTime) {
     camera.ProcessKeyboard(window, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -196,10 +175,6 @@ int main() {
     }
 
     wm.setFramebufferSizeCallback(framebuffer_size_callback);
-
-    // Register the mouse callback
-    glfwSetCursorPosCallback(wm.getWindow(), mouse_callback);
-    glfwSetInputMode(wm.getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     Animation animation("Main Animation");
 
