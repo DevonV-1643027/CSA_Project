@@ -17,6 +17,7 @@ public:
     void render(const glm::mat4& view, const glm::mat4& projection) override;
     void printKeyframesWithInterpolations();
     std::vector<KeyFrame> interpolateKeyFrames() const;
+    void startTraversal(); // Method to start traversal
 
 private:
     glm::vec3 interpolatePosition(float time) const;
@@ -26,8 +27,11 @@ private:
     void initPathRendering(); // Initialization function
 
     float currentTime = 0.0f;
-    bool traversedPath = false;
-    void traversePath(std::vector<KeyFrame> interpolatedKeyFrames);
+    bool traversalComplete = false; // Flag to indicate traversal is complete
+    bool isTraversalInProgress = false; // Flag to check if traversal is in progress
+
+    std::vector<KeyFrame> interpolatedKeyFrames; // Store interpolated keyframes for traversal
+    void traversePath(); // Simplified traversePath method
 
     GLuint pathVAO, pathVBO;
     GLuint keyframeVAO, keyframeVBO;
