@@ -280,6 +280,14 @@ void renderChannelManager() {
 			}
         }
 
+        if (ImGui::Button("Activate")) {
+            selectedChannel->isActive = true;
+        }
+
+        if (ImGui::Button("Deactivate")) {
+            selectedChannel->isActive = false;
+        }
+
         if (ImGui::BeginPopupModal(("Background Channel Editor##" + std::to_string(selectedChannelIndex)).c_str(), &showBackgroundEditor, ImGuiWindowFlags_AlwaysAutoResize)) {
             renderBackgroundEditor();
             if (ImGui::Button("Close")) {

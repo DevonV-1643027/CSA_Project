@@ -37,11 +37,16 @@ void Animation::update(float deltaTime) {
 
 void Animation::render(const glm::mat4& view, const glm::mat4& projection) {
     for (auto& channel : channels) {
-        // check for background channel
-        if (channel->getType() == 0)
+        if (!channel->isActive) {
+            continue; // Skip rendering if the channel is not active
+        }
+        // Check for background channel
+        if (channel->getType() == 0) {
             channel->render(skyboxView, projection);
-        else
+        }
+        else {
             channel->render(view, projection);
+        }
     }
 }
 

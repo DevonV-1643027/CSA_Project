@@ -15,7 +15,7 @@ public:
     VirtualCameraChannel(const std::string& name);
     void update(float deltaTime) override;
     void render(const glm::mat4& view, const glm::mat4& projection) override;
-    void printKeyframesWithInterpolations();
+    void printKeyframesWithInterpolations(std::vector<KeyFrame> interpolatedKeyFrames);
     std::vector<KeyFrame> interpolateKeyFrames() const;
     void startTraversal(); // Method to start traversal
 
@@ -37,6 +37,9 @@ private:
     GLuint keyframeVAO, keyframeVBO;
     bool isInitialized = false;
     Shader* pathShader, * keyframeShader;
+
+    glm::vec3 bezierInterpolate(const std::vector<glm::vec3>& points, float t) const;
+    glm::quat bezierInterpolate(const std::vector<glm::quat>& points, float t) const;
 };
 
 #endif // VIRTUALCAMERACHANNEL_H

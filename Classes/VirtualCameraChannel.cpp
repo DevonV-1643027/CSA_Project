@@ -11,32 +11,8 @@ void VirtualCameraChannel::startTraversal() {
     interpolatedKeyFrames = interpolateKeyFrames(); // Generate interpolated keyframes
 }
 
-glm::vec3 VirtualCameraChannel::interpolatePosition(float time) const {
-    if (keyFrames.empty()) return glm::vec3(0.0f);
-    if (time <= keyFrames.front().timestamp) return keyFrames.front().position;
-    if (time >= keyFrames.back().timestamp) return keyFrames.back().position;
 
-    for (size_t i = 0; i < keyFrames.size() - 1; ++i) {
-        if (time >= keyFrames[i].timestamp && time <= keyFrames[i + 1].timestamp) {
-            return glm::mix(keyFrames[i].position, keyFrames[i + 1].position, (time - keyFrames[i].timestamp) / (keyFrames[i + 1].timestamp - keyFrames[i].timestamp));
-        }
-    }
-    return glm::vec3(0.0f); // Should never reach here
-}
-
-glm::quat VirtualCameraChannel::interpolateOrientation(float time) const {
-    if (keyFrames.empty()) return glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-    if (time <= keyFrames.front().timestamp) return keyFrames.front().rotation;
-    if (time >= keyFrames.back().timestamp) return keyFrames.back().rotation;
-
-    for (size_t i = 0; i < keyFrames.size() - 1; ++i) {
-        if (time >= keyFrames[i].timestamp && time <= keyFrames[i + 1].timestamp) {
-            return glm::slerp(keyFrames[i].rotation, keyFrames[i + 1].rotation, (time - keyFrames[i].timestamp) / (keyFrames[i + 1].timestamp - keyFrames[i].timestamp));
-        }
-    }
-    return glm::quat(1.0f, 0.0f, 0.0f, 0.0f); // Should never reach here
-}
-
+// interpolate functions
 glm::vec3 VirtualCameraChannel::interpolateScale(float time) const {
     if (keyFrames.empty()) return glm::vec3(1.0f);
     if (time <= keyFrames.front().timestamp) return keyFrames.front().scale;
@@ -49,6 +25,69 @@ glm::vec3 VirtualCameraChannel::interpolateScale(float time) const {
     }
     return glm::vec3(1.0f); // Should never reach here
 }
+
+glm::vec3 VirtualCameraChannel::bezierInterpolate(const std::vector<glm::vec3>& points, float t) const {
+    if (points.size() == 1) {
+        return points[0];
+    }
+
+    std::vector<glm::vec3> newPoints;
+    for (size_t i = 0; i < points.size() - 1; ++i) {
+        newPoints.push_back(glm::mix(points[i], points[i + 1], t));
+    }
+
+    return bezierInterpolate(newPoints, t);
+}
+
+glm::quat VirtualCameraChannel::bezierInterpolate(const std::vector<glm::quat>& points, float t) const {
+    if (points.size() == 1) {
+        return points[0];
+    }
+
+    std::vector<glm::quat> newPoints;
+    for (size_t i = 0; i < points.size() - 1; ++i) {
+        newPoints.push_back(glm::slerp(points[i], points[i + 1], t));
+    }
+
+    return bezierInterpolate(newPoints, t);
+}
+
+glm::vec3 VirtualCameraChannel::interpolatePosition(float time) const {
+    if (keyFrames.empty()) return glm::vec3(0.0f);
+    if (time <= keyFrames.front().timestamp) return keyFrames.front().position;
+    if (time >= keyFrames.back().timestamp) return keyFrames.back().position;
+
+    // Collect all control points from keyFrames
+    std::vector<glm::vec3> controlPoints;
+    for (const auto& keyFrame : keyFrames) {
+        controlPoints.push_back(keyFrame.position);
+    }
+
+    // Calculate t for the whole curve
+    float totalTime = keyFrames.back().timestamp - keyFrames.front().timestamp;
+    float t = (time - keyFrames.front().timestamp) / totalTime;
+
+    return bezierInterpolate(controlPoints, t);
+}
+
+glm::quat VirtualCameraChannel::interpolateOrientation(float time) const {
+    if (keyFrames.empty()) return glm::quat();
+    if (time <= keyFrames.front().timestamp) return keyFrames.front().rotation;
+    if (time >= keyFrames.back().timestamp) return keyFrames.back().rotation;
+
+    // Collect all control points from keyFrames
+    std::vector<glm::quat> controlPoints;
+    for (const auto& keyFrame : keyFrames) {
+        controlPoints.push_back(keyFrame.rotation);
+    }
+
+    // Calculate t for the whole curve
+    float totalTime = keyFrames.back().timestamp - keyFrames.front().timestamp;
+    float t = (time - keyFrames.front().timestamp) / totalTime;
+
+    return bezierInterpolate(controlPoints, t);
+}
+
 
 void VirtualCameraChannel::update(float deltaTime) {
     if (isTraversalInProgress && !traversalComplete) {
@@ -93,6 +132,9 @@ void VirtualCameraChannel::render(const glm::mat4& view, const glm::mat4& projec
     }
 
     std::vector<KeyFrame> interpolatedKeyFrames = interpolateKeyFrames();
+
+    // Debug: Print interpolated keyframes
+    // printKeyframesWithInterpolations(interpolatedKeyFrames);
 
     std::vector<glm::vec3> pathPositions;
     std::vector<glm::vec3> keyframePositions;
@@ -159,7 +201,7 @@ void VirtualCameraChannel::traversePath() {
     if (interpolatedKeyFrames.empty()) return;
 
     Camera& camera = Camera::getInstance();
-    glm::vec3 cubePosition(0.0f, 0.0f, 0.0f); // Assuming the cube is at the origin
+    glm::vec3 cubePosition(0.0f, 0.0f, 0.0f);
 
     if (currentTime >= interpolatedKeyFrames.back().timestamp) {
         traversalComplete = true;
@@ -183,7 +225,7 @@ void VirtualCameraChannel::traversePath() {
     currentTime += 0.016f; // Simulate time progression, equivalent to 60 FPS
 }
 
-void VirtualCameraChannel::printKeyframesWithInterpolations() {
+void VirtualCameraChannel::printKeyframesWithInterpolations(std::vector<KeyFrame> interpolatedKeyFrames) {
     std::cout << "Base Keyframes:\n";
     for (const auto& kf : keyFrames) {
         std::cout << "Time: " << kf.timestamp
@@ -193,7 +235,6 @@ void VirtualCameraChannel::printKeyframesWithInterpolations() {
     }
 
     // Print interpolated keyframes
-    std::vector<KeyFrame> interpolatedKeyFrames = interpolateKeyFrames();
     if (interpolatedKeyFrames.size() < 2) {
         std::cout << "Not enough keyframes to interpolate.\n";
         return;
@@ -214,7 +255,9 @@ std::vector<KeyFrame> VirtualCameraChannel::interpolateKeyFrames() const {
     if (keyFrames.empty()) return interpolatedKeyFrames;
 
     for (size_t i = 0; i < keyFrames.size() - 1; ++i) {
-        interpolatedKeyFrames.push_back(keyFrames[i]);
+        if (i == 0 || i == keyFrames.size() - 1) {
+			interpolatedKeyFrames.push_back(keyFrames[i]);
+		}
         float startTime = keyFrames[i].timestamp;
         float endTime = keyFrames[i + 1].timestamp;
         float interval = (endTime - startTime) / frameRate;
