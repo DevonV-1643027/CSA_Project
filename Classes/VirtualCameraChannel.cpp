@@ -1,5 +1,9 @@
 #include "../Headers/VirtualCameraChannel.h"
 
+std::vector<float> t_values;
+std::vector<float> timeStamps;
+std::vector<glm::vec3> drawnSpeedCurve;
+
 VirtualCameraChannel::VirtualCameraChannel(const std::string& name)
     : Channel(name, ChannelType::VIRTUAL_CAMERA), isInitialized(false), pathShader(nullptr), isTraversalInProgress(false) {
 }
@@ -11,6 +15,10 @@ void VirtualCameraChannel::startTraversal() {
     interpolatedKeyFrames = interpolateKeyFrames(); // Generate interpolated keyframes
 }
 
+float VirtualCameraChannel::easeInOutCubic(float t) {
+    float easedValue = t < 0.5f ? 4.0f * t * t * t : 1.0f - std::pow(-2.0f * t + 2.0f, 3.0f) / 2.0f;
+    return easedValue;
+}
 
 // interpolate functions
 glm::vec3 VirtualCameraChannel::interpolateScale(float time) const {
@@ -67,6 +75,15 @@ glm::vec3 VirtualCameraChannel::interpolatePosition(float time) const {
     float totalTime = keyFrames.back().timestamp - keyFrames.front().timestamp;
     float t = (time - keyFrames.front().timestamp) / totalTime;
 
+    // Apply easing function
+    t = easeInOutCubic(t);
+    
+    if (timeStamps.size() < 2 + (keyFrames.size() - 1) * (frameRate - 1))
+    {
+        t_values.push_back(t);
+        timeStamps.push_back(time);
+    }        
+
     return bezierInterpolate(controlPoints, t);
 }
 
@@ -84,6 +101,9 @@ glm::quat VirtualCameraChannel::interpolateOrientation(float time) const {
     // Calculate t for the whole curve
     float totalTime = keyFrames.back().timestamp - keyFrames.front().timestamp;
     float t = (time - keyFrames.front().timestamp) / totalTime;
+
+    // Apply easing function
+    t = easeInOutCubic(t);
 
     return bezierInterpolate(controlPoints, t);
 }
@@ -112,6 +132,7 @@ void VirtualCameraChannel::update(float deltaTime) {
         }
 
         float factor = (currentTime - startFrame.timestamp) / (endFrame.timestamp - startFrame.timestamp);
+        factor = easeInOutCubic(factor); // Apply easing
         glm::vec3 interpolatedPosition = glm::mix(startFrame.position, endFrame.position, factor);
         glm::quat interpolatedRotation = glm::slerp(startFrame.rotation, endFrame.rotation, factor);
 
@@ -126,15 +147,13 @@ void VirtualCameraChannel::update(float deltaTime) {
     }
 }
 
+// Refactored render function
 void VirtualCameraChannel::render(const glm::mat4& view, const glm::mat4& projection) {
     if (!isInitialized) {
         initPathRendering();
     }
 
     std::vector<KeyFrame> interpolatedKeyFrames = interpolateKeyFrames();
-
-    // Debug: Print interpolated keyframes
-    // printKeyframesWithInterpolations(interpolatedKeyFrames);
 
     std::vector<glm::vec3> pathPositions;
     std::vector<glm::vec3> keyframePositions;
@@ -145,6 +164,39 @@ void VirtualCameraChannel::render(const glm::mat4& view, const glm::mat4& projec
         keyframePositions.push_back(kf.position);
     }
 
+    // Draw the path
+    drawPath(view, projection, pathPositions);
+
+    // Draw the keyframes
+    drawKeyframes(view, projection, keyframePositions);
+
+    // Draw the speed curve
+    // Calculate rate of change
+    std::vector<float> rate_of_change;
+    if (t_values.size() > 1) {
+        for (size_t i = 1; i < t_values.size(); ++i) {
+            float rate = t_values[i] - t_values[i - 1];
+            rate_of_change.push_back(rate);
+        }
+    }   
+
+    std::vector<glm::vec3> speedCurvePositions;
+    if (rate_of_change.size() > 0 && timeStamps.size() > 0) {
+        for (size_t i = 0; i < rate_of_change.size(); ++i) {
+            speedCurvePositions.push_back(glm::vec3(timeStamps[i], rate_of_change[i], 5.0f));
+        }
+
+        drawSpeedCurve(view, projection, speedCurvePositions);
+	}   
+
+    // Start traversal if not already in progress
+    if (!isTraversalInProgress && !traversalComplete) {
+        startTraversal();
+    }
+}
+
+// Function to draw the path
+void VirtualCameraChannel::drawPath(const glm::mat4& view, const glm::mat4& projection, const std::vector<glm::vec3>& pathPositions) {
     // Bind and upload path positions to the VBO
     glBindVertexArray(pathVAO);
     glBindBuffer(GL_ARRAY_BUFFER, pathVBO);
@@ -165,7 +217,10 @@ void VirtualCameraChannel::render(const glm::mat4& view, const glm::mat4& projec
 
     // Unbind the path VAO
     glBindVertexArray(0);
+}
 
+// Function to draw the keyframes
+void VirtualCameraChannel::drawKeyframes(const glm::mat4& view, const glm::mat4& projection, const std::vector<glm::vec3>& keyframePositions) {
     // Bind and upload keyframe positions to the VBO
     glBindVertexArray(keyframeVAO);
     glBindBuffer(GL_ARRAY_BUFFER, keyframeVBO);
@@ -190,12 +245,61 @@ void VirtualCameraChannel::render(const glm::mat4& view, const glm::mat4& projec
     // Unbind the keyframe VAO and shader program
     glBindVertexArray(0);
     glUseProgram(0);
-
-    // Start traversal if not already in progress
-    if (!isTraversalInProgress && !traversalComplete) {
-        startTraversal();
-    }
 }
+
+void VirtualCameraChannel::drawSpeedCurve(const glm::mat4& view, const glm::mat4& projection, const std::vector<glm::vec3>& speedCurvePositions) {
+    if (speedCurvePositions.empty()) return;
+
+    if (!speedCurveDrawn) {
+		speedCurveDrawn = true;
+        drawnSpeedCurve.insert(drawnSpeedCurve.end(), speedCurvePositions.begin(), speedCurvePositions.end());
+    }
+
+    // Generate and bind VAO and VBO if they are not generated yet
+    if (!glIsVertexArray(speedCurveVAO)) {
+        glGenVertexArrays(1, &speedCurveVAO);
+    }
+    if (!glIsBuffer(speedCurveVBO)) {
+        glGenBuffers(1, &speedCurveVBO);
+    }
+
+    // Create vertices for x and y axes
+    std::vector<glm::vec3> axisVertices;
+    glm::vec3 start = drawnSpeedCurve[0];
+    axisVertices.push_back(start);               // Start of x-axis
+    axisVertices.push_back(start + glm::vec3(drawnSpeedCurve.size() * 0.5f, 0.0f, 0.0f)); // End of x-axis
+    axisVertices.push_back(start);               // Start of y-axis
+    axisVertices.push_back(start + glm::vec3(0.0f, drawnSpeedCurve.size() *0.1f, 0.0f)); // End of y-axis
+
+    // Combine axis vertices and speed curve positions
+    std::vector<glm::vec3> combinedVertices = axisVertices;
+    combinedVertices.insert(combinedVertices.end(), drawnSpeedCurve.begin(), drawnSpeedCurve.end());
+
+    // Bind and upload combined vertices to the VBO
+    glBindVertexArray(speedCurveVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, speedCurveVBO);
+    glBufferData(GL_ARRAY_BUFFER, combinedVertices.size() * sizeof(glm::vec3), combinedVertices.data(), GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+
+    // Use the speed curve shader program
+    glUseProgram(speedCurveShader->ID);
+
+    // Set view and projection matrices
+    glUniformMatrix4fv(glGetUniformLocation(speedCurveShader->ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(speedCurveShader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+    // Draw the axes
+    glDrawArrays(GL_LINES, 0, axisVertices.size());
+
+    // Draw the speed curve
+    glDrawArrays(GL_LINE_STRIP, axisVertices.size(), drawnSpeedCurve.size());
+
+    // Unbind the VAO
+    glBindVertexArray(0);
+}
+
 
 void VirtualCameraChannel::traversePath() {
     if (interpolatedKeyFrames.empty()) return;
@@ -291,9 +395,14 @@ void VirtualCameraChannel::initPathRendering() {
     glGenVertexArrays(1, &keyframeVAO);
     glGenBuffers(1, &keyframeVBO);
 
+    // Initialize VAO and VBO for speed curve
+    glGenVertexArrays(1, &speedCurveVAO);
+    glGenBuffers(1, &speedCurveVBO);
+
     // Initialize the shaders
     pathShader = new Shader("../Shaders/path.vs", "../Shaders/path.fs");
     keyframeShader = new Shader("../Shaders/keyframe.vs", "../Shaders/keyframe.fs");
+    speedCurveShader = new Shader("../Shaders/speed_curve.vs", "../Shaders/speed_curve.fs");
 
     isInitialized = true;
 }
