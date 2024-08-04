@@ -31,7 +31,7 @@ void Animation::updateChannelName(const std::string& oldName, const std::string&
 
 void Animation::update(float deltaTime) {
     for (auto& channel : channels) {
-        channel->update(deltaTime);
+        channel->update(deltaTime);            
     }
 }
 

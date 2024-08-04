@@ -40,7 +40,6 @@ public:
     void setFrameRate(float frameRate) { this->frameRate = frameRate; }
 
     bool isActive = true;
-
 protected:
     std::string name;
     ChannelType channelType;

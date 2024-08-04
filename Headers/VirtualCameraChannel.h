@@ -18,6 +18,7 @@ public:
     void printKeyframesWithInterpolations(std::vector<KeyFrame> interpolatedKeyFrames);
     std::vector<KeyFrame> interpolateKeyFrames() const;
     void startTraversal(); // Method to start traversal
+    bool isTraversalInProgress = false;
 
 private:
     glm::vec3 interpolatePosition(float time) const;
@@ -28,7 +29,7 @@ private:
 
     float currentTime = 0.0f;
     bool traversalComplete = false; // Flag to indicate traversal is complete
-    bool isTraversalInProgress = false; // Flag to check if traversal is in progress
+     // Flag to check if traversal is in progress
 
     std::vector<KeyFrame> interpolatedKeyFrames; // Store interpolated keyframes for traversal
     void traversePath(); // Simplified traversePath method

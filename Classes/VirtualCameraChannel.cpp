@@ -113,38 +113,6 @@ void VirtualCameraChannel::update(float deltaTime) {
     if (isTraversalInProgress && !traversalComplete) {
         traversePath();
     }
-    else if (!traversalComplete) {
-        // Allow user control if traversal is not in progress
-        currentTime += deltaTime;
-
-        // Guard clause for empty keyFrames
-        if (keyFrames.empty()) return;
-
-        KeyFrame startFrame = keyFrames.front();
-        KeyFrame endFrame = keyFrames.back();
-
-        for (size_t i = 0; i < keyFrames.size() - 1; ++i) {
-            if (keyFrames[i].timestamp <= currentTime && keyFrames[i + 1].timestamp > currentTime) {
-                startFrame = keyFrames[i];
-                endFrame = keyFrames[i + 1];
-                break;
-            }
-        }
-
-        float factor = (currentTime - startFrame.timestamp) / (endFrame.timestamp - startFrame.timestamp);
-        factor = easeInOutCubic(factor); // Apply easing
-        glm::vec3 interpolatedPosition = glm::mix(startFrame.position, endFrame.position, factor);
-        glm::quat interpolatedRotation = glm::slerp(startFrame.rotation, endFrame.rotation, factor);
-
-        Camera& camera = Camera::getInstance();
-        camera.Position = interpolatedPosition;
-
-        // Make the camera look at the cube
-        glm::vec3 cubePosition(0.0f, 0.0f, 0.0f); // Assuming the cube is at the origin
-        camera.Front = glm::normalize(cubePosition - camera.Position);
-        camera.Right = glm::normalize(glm::cross(camera.Front, camera.WorldUp));
-        camera.Up = glm::normalize(glm::cross(camera.Right, camera.Front));
-    }
 }
 
 // Refactored render function
@@ -187,12 +155,7 @@ void VirtualCameraChannel::render(const glm::mat4& view, const glm::mat4& projec
         }
 
         drawSpeedCurve(view, projection, speedCurvePositions);
-	}   
-
-    // Start traversal if not already in progress
-    if (!isTraversalInProgress && !traversalComplete) {
-        startTraversal();
-    }
+	}
 }
 
 // Function to draw the path
@@ -251,7 +214,7 @@ void VirtualCameraChannel::drawSpeedCurve(const glm::mat4& view, const glm::mat4
     if (speedCurvePositions.empty()) return;
 
     if (!speedCurveDrawn) {
-		speedCurveDrawn = true;
+        speedCurveDrawn = true;
         drawnSpeedCurve.insert(drawnSpeedCurve.end(), speedCurvePositions.begin(), speedCurvePositions.end());
     }
 
@@ -267,13 +230,24 @@ void VirtualCameraChannel::drawSpeedCurve(const glm::mat4& view, const glm::mat4
     std::vector<glm::vec3> axisVertices;
     glm::vec3 start = drawnSpeedCurve[0];
     axisVertices.push_back(start);               // Start of x-axis
-    axisVertices.push_back(start + glm::vec3(drawnSpeedCurve.size() * 0.5f, 0.0f, 0.0f)); // End of x-axis
+    axisVertices.push_back(start + glm::vec3(drawnSpeedCurve.size() * 0.3f, 0.0f, 0.0f)); // End of x-axis
     axisVertices.push_back(start);               // Start of y-axis
-    axisVertices.push_back(start + glm::vec3(0.0f, drawnSpeedCurve.size() *0.1f, 0.0f)); // End of y-axis
+    axisVertices.push_back(start + glm::vec3(0.0f, drawnSpeedCurve.size() * 0.05f, 0.0f)); // End of y-axis
 
-    // Combine axis vertices and speed curve positions
+    // Apply a scaling factor to the y-values for better visualization
+    float yScaleFactor = 20.0f; // Adjust this value as needed for clarity
+
+    // Create vertices for the speed curve with scaled y-values
+    std::vector<glm::vec3> scaledSpeedCurve;
+    for (const auto& point : drawnSpeedCurve) {
+        glm::vec3 scaledPoint = point;
+        scaledPoint.y *= yScaleFactor;
+        scaledSpeedCurve.push_back(scaledPoint);
+    }
+
+    // Combine axis vertices and scaled speed curve positions
     std::vector<glm::vec3> combinedVertices = axisVertices;
-    combinedVertices.insert(combinedVertices.end(), drawnSpeedCurve.begin(), drawnSpeedCurve.end());
+    combinedVertices.insert(combinedVertices.end(), scaledSpeedCurve.begin(), scaledSpeedCurve.end());
 
     // Bind and upload combined vertices to the VBO
     glBindVertexArray(speedCurveVAO);
@@ -294,7 +268,7 @@ void VirtualCameraChannel::drawSpeedCurve(const glm::mat4& view, const glm::mat4
     glDrawArrays(GL_LINES, 0, axisVertices.size());
 
     // Draw the speed curve
-    glDrawArrays(GL_LINE_STRIP, axisVertices.size(), drawnSpeedCurve.size());
+    glDrawArrays(GL_LINE_STRIP, axisVertices.size(), scaledSpeedCurve.size());
 
     // Unbind the VAO
     glBindVertexArray(0);
