@@ -93,6 +93,144 @@ void renderBackgroundEditor() {
     ImGui::End();
 }
 
+void renderStepAheadEditor() {
+    ImGui::Begin("Key-Frame Editor");
+
+    static char objFilePath[256] = ""; // Path to OBJ file
+    static bool importSuccess = false; // To store the result of import
+    static char importStatus[64] = ""; // To display the import status message
+
+    ImGui::InputText("OBJ File Path", objFilePath, IM_ARRAYSIZE(objFilePath));
+
+    if (ImGui::Button("Import OBJ")) {
+        if (selectedChannel && selectedChannel->getType() == STEP_AHEAD_ANIMATION) {
+            bool result = std::dynamic_pointer_cast<StepAheadAnimationChannel>(selectedChannel)->importObject(objFilePath);
+            if (result) {
+                importSuccess = true;
+                strcpy_s(importStatus, "Import successful!");
+            }
+            else {
+                importSuccess = false;
+                strcpy_s(importStatus, "Import failed!");
+            }
+            std::fill(std::begin(objFilePath), std::end(objFilePath), 0);
+        }
+    }
+
+    // Display import status message
+    if (importSuccess) {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), importStatus); // Green for success
+    }
+    else if (strlen(importStatus) > 0) {
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), importStatus); // Red for failure
+    }
+
+    ImGui::Separator();
+
+    static float timestamp = 0.0f;
+    static float position[3] = { 0.0f, 0.0f, 0.0f };
+    static float rotation[3] = { 0.0f, 0.0f, 0.0f }; // Euler angles
+    static float scale[3] = { 1.0f, 1.0f, 1.0f };
+    static int frameRate = 10; // Default frame rate
+
+    ImGui::InputFloat("Time", &timestamp);
+    ImGui::InputFloat3("Position", position);
+    ImGui::InputFloat3("Rotation", rotation); // Input Euler angles
+    ImGui::InputFloat3("Scale", scale);
+    ImGui::InputInt("Frame Rate", &frameRate); // Input frame rate
+
+    ImGui::Separator();
+
+    if (ImGui::Button("Close Step-Ahead Editor")) {
+        ImGui::CloseCurrentPopup();
+    }
+
+    if (ImGui::Button("Set Frame Rate")) {
+        if (selectedChannel) {
+            selectedChannel->setFrameRate(frameRate);
+        }
+    }
+
+    if (ImGui::Button("Add Key-Frame")) {
+        // Convert Euler angles to quaternion
+        glm::quat rotQuat = eulerToQuaternion(glm::radians(rotation[0]), glm::radians(rotation[1]), glm::radians(rotation[2]));
+
+        // Add new key-frame logic
+        KeyFrame newKeyFrame(timestamp, glm::vec3(position[0], position[1], position[2]),
+            rotQuat,
+            glm::vec3(scale[0], scale[1], scale[2]));
+        if (selectedChannel) {
+            selectedChannel->addKeyFrame(newKeyFrame);
+            // Clear input fields
+            timestamp = 0.0f;
+            position[0] = position[1] = position[2] = 0.0f;
+            rotation[0] = rotation[1] = rotation[2] = 0.0f;
+            scale[0] = scale[1] = scale[2] = 1.0f;
+        }
+    }
+
+    ImGui::Separator();
+
+    ImGui::Text("Existing Key-Frames");
+    static int selectedKeyFrameIndex = -1;
+    if (selectedChannel) {
+        if (ImGui::BeginListBox("##keyframeList", ImVec2(-FLT_MIN, 10 * ImGui::GetTextLineHeightWithSpacing()))) {
+            for (int i = 0; i < selectedChannel->getKeyFrames().size(); ++i) {
+                const auto& kf = selectedChannel->getKeyFrames()[i];
+                glm::vec3 eulerRot = glm::degrees(quaternionToEuler(kf.rotation)); // Convert from radians to degrees
+
+                // Apply rounding
+                std::string keyframeLabel = "Time: " + formatFloat(kf.timestamp, 2) +
+                    ", Position: (" + formatFloat(kf.position.x, 2) + ", " + formatFloat(kf.position.y, 2) + ", " + formatFloat(kf.position.z, 2) + ")" +
+                    ", Rotation: (" + formatFloat(eulerRot.x, 1) + ", " + formatFloat(eulerRot.y, 1) + ", " + formatFloat(eulerRot.z, 1) + ")" +
+                    ", Scale: (" + formatFloat(kf.scale.x, 2) + ", " + formatFloat(kf.scale.y, 2) + ", " + formatFloat(kf.scale.z, 2) + ")";
+                if (ImGui::Selectable(keyframeLabel.c_str(), selectedKeyFrameIndex == i)) {
+                    selectedKeyFrameIndex = i;
+                }
+            }
+            ImGui::EndListBox();
+        }
+
+        if (selectedKeyFrameIndex != -1) {
+            const auto& kf = selectedChannel->getKeyFrames()[selectedKeyFrameIndex];
+            timestamp = kf.timestamp;
+            position[0] = kf.position.x;
+            position[1] = kf.position.y;
+            position[2] = kf.position.z;
+            glm::vec3 eulerRot = glm::degrees(quaternionToEuler(kf.rotation)); // Convert from radians to degrees
+            rotation[0] = eulerRot.x;
+            rotation[1] = eulerRot.y;
+            rotation[2] = eulerRot.z;
+            scale[0] = kf.scale.x;
+            scale[1] = kf.scale.y;
+            scale[2] = kf.scale.z;
+
+            if (ImGui::Button("Update Key-Frame")) {
+                glm::quat rotQuat = eulerToQuaternion(glm::radians(rotation[0]), glm::radians(rotation[1]), glm::radians(rotation[2]));
+                KeyFrame updatedKeyFrame(timestamp, glm::vec3(position[0], position[1], position[2]), rotQuat, glm::vec3(scale[0], scale[1], scale[2]));
+                selectedChannel->updateKeyFrame(selectedKeyFrameIndex, updatedKeyFrame);
+            }
+
+            if (ImGui::Button("Remove Key-Frame")) {
+                selectedChannel->removeKeyFrame(selectedKeyFrameIndex);
+                selectedKeyFrameIndex = -1; // Clear selection
+            }
+
+            if (ImGui::Button("Move Up") && selectedKeyFrameIndex > 0) {
+                selectedChannel->swapKeyFrames(selectedKeyFrameIndex, selectedKeyFrameIndex - 1);
+                --selectedKeyFrameIndex;
+            }
+
+            if (ImGui::Button("Move Down") && selectedKeyFrameIndex < selectedChannel->getKeyFrames().size() - 1) {
+                selectedChannel->swapKeyFrames(selectedKeyFrameIndex, selectedKeyFrameIndex + 1);
+                ++selectedKeyFrameIndex;
+            }
+        }
+    }
+
+    ImGui::End();
+}
+
 
 void renderKeyFrameEditor() {
     ImGui::Begin("Key-Frame Editor");
@@ -208,6 +346,7 @@ void renderChannelManager() {
     static int channelType = 0; // 0: Background, 1: VirtualCamera, 2: StepAheadAnimation, 3: CharacterAnimation
     static bool showKeyFrameEditor = false;
     static bool showBackgroundEditor = false;
+    static bool showStepAheadEditor = false;
 
     ImGui::InputText("Channel Name##new", channelName, IM_ARRAYSIZE(channelName));
     ImGui::Combo("Channel Type", &channelType, "Background\0Virtual Camera\0Step Ahead Animation\0Character Animation\0");
@@ -274,7 +413,11 @@ void renderChannelManager() {
 				showBackgroundEditor = true;
                 ImGui::OpenPopup(("Background Channel Editor##" + std::to_string(selectedChannelIndex)).c_str());
 			}
-			else {
+            else if (selectedChannel->getType() == STEP_AHEAD_ANIMATION) {
+				showStepAheadEditor = true;
+				ImGui::OpenPopup(("Step Ahead Editor##" + std::to_string(selectedChannelIndex)).c_str());
+			}
+            else {
 				showKeyFrameEditor = true;
                 ImGui::OpenPopup(("Key-Frame Editor##" + std::to_string(selectedChannelIndex)).c_str());
 			}
@@ -302,6 +445,15 @@ void renderChannelManager() {
             }
             ImGui::EndPopup();
         }
+
+        if (ImGui::BeginPopupModal(("Step Ahead Editor##" + std::to_string(selectedChannelIndex)).c_str(), &showStepAheadEditor, ImGuiWindowFlags_AlwaysAutoResize)) {
+			renderStepAheadEditor();
+			if (ImGui::Button("Close")) {
+                showStepAheadEditor = false;
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
 
         if (ImGui::BeginPopupModal(("Key-Frame Editor##" + std::to_string(selectedChannelIndex)).c_str(), &showKeyFrameEditor, ImGuiWindowFlags_AlwaysAutoResize)) {
             renderKeyFrameEditor();
