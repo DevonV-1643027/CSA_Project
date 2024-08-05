@@ -7,7 +7,6 @@
 #include "../Headers/KeyFrame.h"
 #include "../Headers/Channel.h"
 
-#include <memory>
 #include <iostream>
 
 // Globals
@@ -104,15 +103,7 @@ void renderStepAheadEditor() {
 
     if (ImGui::Button("Import OBJ")) {
         if (selectedChannel && selectedChannel->getType() == STEP_AHEAD_ANIMATION) {
-            bool result = std::dynamic_pointer_cast<StepAheadAnimationChannel>(selectedChannel)->importObject(objFilePath);
-            if (result) {
-                importSuccess = true;
-                strcpy_s(importStatus, "Import successful!");
-            }
-            else {
-                importSuccess = false;
-                strcpy_s(importStatus, "Import failed!");
-            }
+            std::dynamic_pointer_cast<StepAheadAnimationChannel>(selectedChannel)->importObject(objFilePath);
             std::fill(std::begin(objFilePath), std::end(objFilePath), 0);
         }
     }
@@ -123,6 +114,23 @@ void renderStepAheadEditor() {
     }
     else if (strlen(importStatus) > 0) {
         ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), importStatus); // Red for failure
+    }
+
+    ImGui::Separator();
+
+    static char vertexShaderPath[256] = ""; // Path to Vertex shader file
+    static char fragmentShaderPath[256] = ""; // Path to Fragment shader file
+
+    ImGui::InputText("Vertex Shader Path", vertexShaderPath, IM_ARRAYSIZE(vertexShaderPath));
+    ImGui::InputText("Fragment Shader Path", fragmentShaderPath, IM_ARRAYSIZE(fragmentShaderPath));
+
+    if (ImGui::Button("Load Shader")) {
+        if (selectedChannel && selectedChannel->getType() == STEP_AHEAD_ANIMATION)
+        {
+            std::dynamic_pointer_cast<StepAheadAnimationChannel>(selectedChannel)->setupShader(vertexShaderPath, fragmentShaderPath);
+            std::fill(std::begin(vertexShaderPath), std::end(vertexShaderPath), 0);
+            std::fill(std::begin(fragmentShaderPath), std::end(fragmentShaderPath), 0);
+        }   
     }
 
     ImGui::Separator();

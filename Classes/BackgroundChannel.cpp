@@ -1,11 +1,9 @@
 #include "../Headers/BackgroundChannel.h"
 
-// Function to initialize GLEW
-bool initializeGLEW() {
-    glewExperimental = GL_TRUE;
-    GLenum err = glewInit();
-    if (GLEW_OK != err) {
-        std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
+// Function to initialize GLAD
+bool initializeGLAD() {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        std::cerr << "Failed to initialize GLAD" << std::endl;
         return false;
     }
     return true;
@@ -91,13 +89,13 @@ void BackgroundChannel::loadSkybox(const std::vector<std::string>& faces) {
 }
 
 void BackgroundChannel::setupBackground() {
-    if (!initializeGLEW()) {
-        std::cerr << "Failed to initialize GLEW" << std::endl;
+    if (!initializeGLAD()) {
+        std::cerr << "Failed to initialize GLAD" << std::endl;
         return;
     }
 
     // Check if the shaders are compiled and linked correctly
-    backgroundShader = new Shader("../Shaders/background.vs", "../Shaders/background.fs");
+    backgroundShader = new ShaderD("../Shaders/background.vs", "../Shaders/background.fs");
     if (!backgroundShader->isCompiled()) {
         std::cerr << "Failed to compile and link shader" << std::endl;
         return;

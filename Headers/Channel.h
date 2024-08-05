@@ -2,7 +2,6 @@
 #ifndef CHANNEL_H
 #define CHANNEL_H
 
-#include <GLFW/glfw3.h>
 #include <string>
 #include <vector>
 #include "KeyFrame.h"

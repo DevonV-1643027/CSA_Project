@@ -1,10 +1,6 @@
-#include "gl/glew.h"
-#include "../Headers/Shader.h"
-#include <iostream>
-#include <fstream>
-#include <sstream>
+#include "../Headers/ShaderD.h"
 
-Shader::Shader(const char* vertexPath, const char* fragmentPath) {
+ShaderD::ShaderD(const char* vertexPath, const char* fragmentPath) {
     std::string vertexCode;
     std::string fragmentCode;
     std::ifstream vShaderFile;
@@ -61,15 +57,15 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
     compiled = success == GL_TRUE;
 }
 
-void Shader::use() {
+void ShaderD::use() {
     glUseProgram(ID);
 }
 
-bool Shader::isCompiled() const {
+bool ShaderD::isCompiled() const {
     return compiled;
 }
 
-void Shader::checkCompileErrors(GLuint shader, std::string type) {
+void ShaderD::checkCompileErrors(GLuint shader, std::string type) {
     int success;
     char infoLog[1024];
     if (type != "PROGRAM") {

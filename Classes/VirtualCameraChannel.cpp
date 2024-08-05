@@ -356,8 +356,8 @@ std::vector<KeyFrame> VirtualCameraChannel::interpolateKeyFrames() const {
 
 void VirtualCameraChannel::initPathRendering() {
     // Check if OpenGL context is initialized
-    if (glewInit() != GLEW_OK) {
-        std::cerr << "Failed to initialize GLEW or OpenGL context is not available." << std::endl;
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        std::cerr << "Failed to initialize GLAD or OpenGL context is not available." << std::endl;
         return;
     }
 
@@ -374,9 +374,9 @@ void VirtualCameraChannel::initPathRendering() {
     glGenBuffers(1, &speedCurveVBO);
 
     // Initialize the shaders
-    pathShader = new Shader("../Shaders/path.vs", "../Shaders/path.fs");
-    keyframeShader = new Shader("../Shaders/keyframe.vs", "../Shaders/keyframe.fs");
-    speedCurveShader = new Shader("../Shaders/speed_curve.vs", "../Shaders/speed_curve.fs");
+    pathShader = new ShaderD("../Shaders/path.vs", "../Shaders/path.fs");
+    keyframeShader = new ShaderD("../Shaders/keyframe.vs", "../Shaders/keyframe.fs");
+    speedCurveShader = new ShaderD("../Shaders/speed_curve.vs", "../Shaders/speed_curve.fs");
 
     isInitialized = true;
 }

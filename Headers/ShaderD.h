@@ -1,11 +1,15 @@
 #pragma once
 
+#include <glad/glad.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include <string>
 
-class Shader {
+class ShaderD {
 public:
     GLuint ID;
-    Shader(const char* vertexPath, const char* fragmentPath);
+    ShaderD(const char* vertexPath, const char* fragmentPath);
     void use();
     bool isCompiled() const;
 

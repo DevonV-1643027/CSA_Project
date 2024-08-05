@@ -4,9 +4,10 @@
 
 #include <string>
 #include <vector>
-#include <GL/glew.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include "Channel.h"
-#include "Shader.h"
+#include "ShaderD.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <stb_image.h> // For loading images
 #include <iostream>
@@ -28,7 +29,7 @@ private:
     GLuint backgroundVBO = 0;
     GLuint textureID = 0;
     GLuint skyboxTextureID;
-    Shader* backgroundShader;
+    ShaderD* backgroundShader;
     bool setupCompleted;
 };
 

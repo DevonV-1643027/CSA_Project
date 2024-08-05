@@ -1,9 +1,9 @@
 #ifndef VIRTUALCAMERACHANNEL_H
 #define VIRTUALCAMERACHANNEL_H
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include "Channel.h"
-#include "Shader.h"
+#include "ShaderD.h"
 #include <iostream>
 #include <glm/gtc/type_ptr.hpp>
 #include "Camera.h"
@@ -38,7 +38,7 @@ private:
     GLuint keyframeVAO, keyframeVBO;
     GLuint speedCurveVAO, speedCurveVBO;
     bool isInitialized = false;
-    Shader *pathShader, *keyframeShader, *speedCurveShader;
+    ShaderD *pathShader, *keyframeShader, *speedCurveShader;
 
     glm::vec3 bezierInterpolate(const std::vector<glm::vec3>& points, float t) const;
     glm::quat bezierInterpolate(const std::vector<glm::quat>& points, float t) const;

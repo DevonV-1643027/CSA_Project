@@ -1,25 +1,24 @@
-#pragma once
 #ifndef STEPAHEADANIMATIONCHANNEL_H
 #define STEPAHEADANIMATIONCHANNEL_H
 
+// for object loading I use the learnopengl implementation, all credits go to the authors
+#include <learnopengl/model.h>
+
 #include "Channel.h"
-#include <fstream>
-#include <sstream>
-#include <iostream>
 
 class StepAheadAnimationChannel : public Channel {
 public:
-    StepAheadAnimationChannel(const std::string& name) : Channel(name, ChannelType::STEP_AHEAD_ANIMATION) {}
+    StepAheadAnimationChannel(const std::string& name);
 
     void update(float deltaTime) override;
-    void render(const glm::mat4& view, const glm::mat4& projection) override;
-    bool importObject(const std::string& filePath); // Function to import an OBJ file
+    void render(const glm::mat4& view, const glm::mat4& projection);
+
+    void importObject(const std::string& path);
+    void setupShader(const std::string& vertexPath, const std::string& fragmentPath);
 
 private:
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec3> normals;
-    std::vector<glm::vec2> uvs;
-    std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
+    Model* model = nullptr;
+    Shader* shader;
 };
 
 #endif // STEPAHEADANIMATIONCHANNEL_H
