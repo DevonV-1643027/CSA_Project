@@ -77,12 +77,13 @@ void StepAheadAnimationChannel::interpolateControlPoints() {
     for (size_t i = 0; i < prevKeyFrame->ffdControlPoints.size(); ++i) {
         currentControlPoints[i].position = glm::mix(prevKeyFrame->ffdControlPoints[i].position,
             nextKeyFrame->ffdControlPoints[i].position, t);
-
-        // Debugging: Print interpolated control points
+        /*
+        // Debugging: Print interpolated control points, saved for later
         std::cout << "Control Point " << i << ": ("
             << currentControlPoints[i].position.x << ", "
             << currentControlPoints[i].position.y << ", "
             << currentControlPoints[i].position.z << ")\n";
+        */        
     }
 }
 
