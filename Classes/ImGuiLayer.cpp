@@ -183,6 +183,7 @@ void renderStepAheadEditor() {
     static int selectedKeyFrameIndex = -1;
     static int selectedControlPointIndex = -1;
     static float ffdPosition[3] = { 0.0f, 0.0f, 0.0f };
+    static float ffdOriginalPosition[3] = { 0.0f, 0.0f, 0.0f };
     static float ffdWeight = 1.0f;
 
     if (selectedChannel) {
@@ -247,7 +248,8 @@ void renderStepAheadEditor() {
                     const auto& cp = kf.ffdControlPoints[i];
                     std::string controlPointLabel = "Control Point " + std::to_string(i) +
                         ": Pos(" + std::to_string(cp.position.x) + ", " + std::to_string(cp.position.y) + ", " + std::to_string(cp.position.z) + ")" +
-                        " Weight(" + std::to_string(cp.weight) + ")";
+                        ", OrigPos(" + std::to_string(cp.originalPosition.x) + ", " + std::to_string(cp.originalPosition.y) + ", " + std::to_string(cp.originalPosition.z) + ")" +
+                        ", Weight(" + std::to_string(cp.weight) + ")";
                     if (ImGui::Selectable(controlPointLabel.c_str(), selectedControlPointIndex == i)) {
                         selectedControlPointIndex = i;
                         ffdPosition[0] = cp.position.x;
@@ -269,10 +271,15 @@ void renderStepAheadEditor() {
             ImGui::Separator();
             ImGui::Text("Add New FFD Control Point");
             ImGui::InputFloat3("Position", ffdPosition);
+            ImGui::InputFloat3("Original Position", ffdOriginalPosition);
             ImGui::InputFloat("Weight", &ffdWeight);
 
             if (ImGui::Button("Add Control Point")) {
-                kf.ffdControlPoints.emplace_back(glm::vec3(ffdPosition[0], ffdPosition[1], ffdPosition[2]), glm::vec3(ffdPosition[0], ffdPosition[1], ffdPosition[2]), ffdWeight);
+                kf.ffdControlPoints.emplace_back(
+                    glm::vec3(ffdPosition[0], ffdPosition[1], ffdPosition[2]),
+                    glm::vec3(ffdOriginalPosition[0], ffdOriginalPosition[1], ffdOriginalPosition[2]),
+                    ffdWeight
+                );
                 selectedControlPointIndex = kf.ffdControlPoints.size() - 1; // Select the new control point
             }
         }

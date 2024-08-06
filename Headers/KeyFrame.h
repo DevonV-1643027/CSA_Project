@@ -15,6 +15,10 @@ struct FFDControlPoint {
     glm::vec3 originalPosition; // Original position of the control point
     float weight;              // Influence weight of the control point
 
+    // Default constructor
+    FFDControlPoint() : position(0.0f), originalPosition(0.0f), weight(1.0f) {}
+    
+    // Parameterized constructor
     FFDControlPoint(glm::vec3 pos, glm::vec3 origPos, float w)
         : position(pos), originalPosition(origPos), weight(w) {}
 };

@@ -4,7 +4,8 @@ StepAheadAnimationChannel::StepAheadAnimationChannel(const std::string& name)
     : Channel(name, STEP_AHEAD_ANIMATION) {}
 
 void StepAheadAnimationChannel::update(float deltaTime) {
-    // Implement the update logic here
+    currentTime += deltaTime;
+    interpolateControlPoints();
 }
 
 void StepAheadAnimationChannel::render(const glm::mat4& view, const glm::mat4& projection) {
@@ -41,11 +42,49 @@ void StepAheadAnimationChannel::render(const glm::mat4& view, const glm::mat4& p
 }
 
 void StepAheadAnimationChannel::importObject(const std::string& path) {
+    if (model) {
+        delete model;
+    }
     model = new Model(path.c_str());
 }
 
 void StepAheadAnimationChannel::setupShader(const std::string& vertexPath, const std::string& fragmentPath) {
+    if (shader) {
+        delete shader;
+    }
     shader = new Shader(("../Shaders/" + vertexPath).c_str(), ("../Shaders/" + fragmentPath).c_str());
 }
+
+void StepAheadAnimationChannel::interpolateControlPoints() {
+    if (keyFrames.size() < 2) return;
+
+    KeyFrame* prevKeyFrame = nullptr;
+    KeyFrame* nextKeyFrame = nullptr;
+
+    for (size_t i = 0; i < keyFrames.size() - 1; ++i) {
+        if (currentTime >= keyFrames[i].timestamp && currentTime <= keyFrames[i + 1].timestamp) {
+            prevKeyFrame = &keyFrames[i];
+            nextKeyFrame = &keyFrames[i + 1];
+            break;
+        }
+    }
+
+    if (!prevKeyFrame || !nextKeyFrame) return;
+
+    float t = (currentTime - prevKeyFrame->timestamp) / (nextKeyFrame->timestamp - prevKeyFrame->timestamp);
+
+    currentControlPoints.resize(prevKeyFrame->ffdControlPoints.size());
+    for (size_t i = 0; i < prevKeyFrame->ffdControlPoints.size(); ++i) {
+        currentControlPoints[i].position = glm::mix(prevKeyFrame->ffdControlPoints[i].position,
+            nextKeyFrame->ffdControlPoints[i].position, t);
+
+        // Debugging: Print interpolated control points
+        std::cout << "Control Point " << i << ": ("
+            << currentControlPoints[i].position.x << ", "
+            << currentControlPoints[i].position.y << ", "
+            << currentControlPoints[i].position.z << ")\n";
+    }
+}
+
 
 

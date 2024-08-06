@@ -5,6 +5,7 @@
 #include <learnopengl/model.h>
 
 #include "Channel.h"
+#include <iostream> // Debugging
 
 class StepAheadAnimationChannel : public Channel {
 public:
@@ -18,7 +19,11 @@ public:
 
 private:
     Model* model = nullptr;
-    Shader* shader;
+    Shader* shader = nullptr;
+    std::vector<FFDControlPoint> currentControlPoints;
+
+    void interpolateControlPoints();
+    float currentTime = 0.0f;
 };
 
 #endif // STEPAHEADANIMATIONCHANNEL_H
