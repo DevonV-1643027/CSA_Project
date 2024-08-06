@@ -177,6 +177,16 @@ void renderStepAheadEditor() {
         }
     }
 
+    // New input for keyframe file path
+    static char keyFrameFilePath[256] = ""; // Path to keyframe file
+    ImGui::InputText("KeyFrame File Path", keyFrameFilePath, IM_ARRAYSIZE(keyFrameFilePath));
+
+    if (ImGui::Button("Load KeyFrames")) {
+        if (selectedChannel) {
+            selectedChannel->loadKeyFramesFromFile(keyFrameFilePath);
+        }
+    }
+    
     ImGui::Separator();
 
     ImGui::Text("Existing Key-Frames");
@@ -287,7 +297,6 @@ void renderStepAheadEditor() {
 
     ImGui::End();
 }
-
 
 void renderKeyFrameEditor() {
     ImGui::Begin("Key-Frame Editor");

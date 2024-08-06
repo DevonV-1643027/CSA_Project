@@ -5,6 +5,9 @@
 #include <string>
 #include <vector>
 #include "KeyFrame.h"
+#include <fstream>
+#include <sstream>
+#include <iostream>
 
 enum ChannelType {
     BACKGROUND,
@@ -41,6 +44,8 @@ public:
     std::vector<KeyFrame>& getKeyFrames() { return keyFrames; }
 
     bool isActive = true;
+
+    void loadKeyFramesFromFile(const std::string& filePath);
 protected:
     std::string name;
     ChannelType channelType;

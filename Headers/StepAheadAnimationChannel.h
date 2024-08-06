@@ -7,6 +7,8 @@
 #include "Channel.h"
 #include <iostream> // Debugging
 
+#include <glm/gtx/string_cast.hpp>
+
 class StepAheadAnimationChannel : public Channel {
 public:
     StepAheadAnimationChannel(const std::string& name);
@@ -24,6 +26,17 @@ private:
 
     void interpolateControlPoints();
     float currentTime = 0.0f;
+
+    void applyFFD();
+
+    glm::vec3 interpolatedPosition;
+    glm::quat interpolatedRotation;
+    glm::vec3 interpolatedScale;
+    glm::vec3 lightPosition;
+    glm::vec3 viewPosition;
+
+    void interpolateKeyFrame();
+    glm::mat4 getModelMatrix() const;
 };
 
 #endif // STEPAHEADANIMATIONCHANNEL_H

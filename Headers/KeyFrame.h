@@ -31,6 +31,10 @@ struct KeyFrame {
     glm::vec3 scale;          // Scale of the object at this key frame
     std::vector<FFDControlPoint> ffdControlPoints; // List of FFD control points
 
+    // Default constructor
+    KeyFrame() : timestamp(0.0f), position(0.0f), rotation(1.0f, 0.0f, 0.0f, 0.0f), scale(1.0f) {}
+    
+    // Parameterized constructor
     KeyFrame(float time, glm::vec3 pos, glm::quat rot, glm::vec3 scl)
         : timestamp(time), position(pos), rotation(rot), scale(scl) {}
 };
