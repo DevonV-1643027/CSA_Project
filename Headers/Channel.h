@@ -30,13 +30,15 @@ public:
     std::string getTypeString() const; // Declaration of the function
     
     void addKeyFrame(const KeyFrame& keyFrame) { keyFrames.push_back(keyFrame); }
-    const std::vector<KeyFrame>& getKeyFrames() const { return keyFrames; }
+    
 
     void swapKeyFrames(size_t index1, size_t index2);
     void updateKeyFrame(size_t index, const KeyFrame& keyFrame);
     void removeKeyFrame(size_t index);
 
     void setFrameRate(float frameRate) { this->frameRate = frameRate; }
+    const std::vector<KeyFrame>& getKeyFrames() const { return keyFrames; }
+    std::vector<KeyFrame>& getKeyFrames() { return keyFrames; }
 
     bool isActive = true;
 protected:

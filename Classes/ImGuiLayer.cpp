@@ -181,6 +181,10 @@ void renderStepAheadEditor() {
 
     ImGui::Text("Existing Key-Frames");
     static int selectedKeyFrameIndex = -1;
+    static int selectedControlPointIndex = -1;
+    static float ffdPosition[3] = { 0.0f, 0.0f, 0.0f };
+    static float ffdWeight = 1.0f;
+
     if (selectedChannel) {
         if (ImGui::BeginListBox("##keyframeList", ImVec2(-FLT_MIN, 10 * ImGui::GetTextLineHeightWithSpacing()))) {
             for (int i = 0; i < selectedChannel->getKeyFrames().size(); ++i) {
@@ -200,7 +204,8 @@ void renderStepAheadEditor() {
         }
 
         if (selectedKeyFrameIndex != -1) {
-            const auto& kf = selectedChannel->getKeyFrames()[selectedKeyFrameIndex];
+            KeyFrame& kf = selectedChannel->getKeyFrames()[selectedKeyFrameIndex];
+
             timestamp = kf.timestamp;
             position[0] = kf.position.x;
             position[1] = kf.position.y;
@@ -232,6 +237,43 @@ void renderStepAheadEditor() {
             if (ImGui::Button("Move Down") && selectedKeyFrameIndex < selectedChannel->getKeyFrames().size() - 1) {
                 selectedChannel->swapKeyFrames(selectedKeyFrameIndex, selectedKeyFrameIndex + 1);
                 ++selectedKeyFrameIndex;
+            }
+
+            ImGui::Separator();
+            ImGui::Text("FFD Control Points");
+
+            if (ImGui::BeginListBox("##controlPointList", ImVec2(-FLT_MIN, 10 * ImGui::GetTextLineHeightWithSpacing()))) {
+                for (int i = 0; i < kf.ffdControlPoints.size(); ++i) {
+                    const auto& cp = kf.ffdControlPoints[i];
+                    std::string controlPointLabel = "Control Point " + std::to_string(i) +
+                        ": Pos(" + std::to_string(cp.position.x) + ", " + std::to_string(cp.position.y) + ", " + std::to_string(cp.position.z) + ")" +
+                        " Weight(" + std::to_string(cp.weight) + ")";
+                    if (ImGui::Selectable(controlPointLabel.c_str(), selectedControlPointIndex == i)) {
+                        selectedControlPointIndex = i;
+                        ffdPosition[0] = cp.position.x;
+                        ffdPosition[1] = cp.position.y;
+                        ffdPosition[2] = cp.position.z;
+                        ffdWeight = cp.weight;
+                    }
+                }
+                ImGui::EndListBox();
+            }
+
+            if (selectedControlPointIndex != -1) {
+                if (ImGui::Button("Remove Control Point")) {
+                    kf.ffdControlPoints.erase(kf.ffdControlPoints.begin() + selectedControlPointIndex);
+                    selectedControlPointIndex = -1; // Clear selection
+                }
+            }
+
+            ImGui::Separator();
+            ImGui::Text("Add New FFD Control Point");
+            ImGui::InputFloat3("Position", ffdPosition);
+            ImGui::InputFloat("Weight", &ffdWeight);
+
+            if (ImGui::Button("Add Control Point")) {
+                kf.ffdControlPoints.emplace_back(glm::vec3(ffdPosition[0], ffdPosition[1], ffdPosition[2]), glm::vec3(ffdPosition[0], ffdPosition[1], ffdPosition[2]), ffdWeight);
+                selectedControlPointIndex = kf.ffdControlPoints.size() - 1; // Select the new control point
             }
         }
     }
