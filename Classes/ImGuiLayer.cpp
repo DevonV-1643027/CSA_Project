@@ -489,11 +489,13 @@ void renderChannelManager() {
 			}
         }
 
-        if (selectedChannel->getType() == VIRTUAL_CAMERA) {
-            if (ImGui::Button("Render Path")) {
-                std::dynamic_pointer_cast<VirtualCameraChannel>(selectedChannel)->startTraversal();
+        if (selectedChannel) {
+            if (selectedChannel->getType() == VIRTUAL_CAMERA) {
+                if (ImGui::Button("Render Path")) {
+                    std::dynamic_pointer_cast<VirtualCameraChannel>(selectedChannel)->startTraversal();
+                }
             }
-        }
+        }        
 
         if (ImGui::Button("Activate")) {
             selectedChannel->isActive = true;
@@ -533,7 +535,6 @@ void renderChannelManager() {
 
     ImGui::End();
 }
-
 
 void renderImGui() {
     ImGui_ImplOpenGL3_NewFrame();
