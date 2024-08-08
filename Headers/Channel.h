@@ -51,6 +51,8 @@ protected:
     ChannelType channelType;
     std::vector<KeyFrame> keyFrames;  // Store key frames
     float frameRate = 24.0f; // Default frame rate
+
+    bool animationFinished = false;
 };
 
 #endif // CHANNEL_H

@@ -35,6 +35,10 @@ private:
     glm::vec3 lightPosition;
     glm::vec3 viewPosition;
 
+    std::vector<Vertex> originalPositions;
+    bool stored = false;
+    void storeOriginalPositions();
+
     void interpolateKeyFrame();
     glm::mat4 getModelMatrix() const;
 };

@@ -23,10 +23,50 @@ StepAheadAnimationChannel::StepAheadAnimationChannel(const std::string& name)
 }
 
 void StepAheadAnimationChannel::update(float deltaTime) {
+    if (animationFinished) return;
+
+    if (!stored) {
+		storeOriginalPositions();
+        stored = true;
+	}
+
     currentTime += deltaTime;
-    interpolateControlPoints();
-    interpolateKeyFrame();
-    applyFFD();
+
+    if (currentTime >= keyFrames.back().timestamp) {
+        currentTime = keyFrames.back().timestamp;
+        interpolateControlPoints();
+        interpolateKeyFrame();
+        applyFFD();
+
+        // Set to the first keyframe's position, rotation, and scale
+        interpolatedPosition = keyFrames.front().position;
+        interpolatedRotation = keyFrames.front().rotation;
+        interpolatedScale = keyFrames.front().scale;
+
+        // Reset model's meshes to the original positions of the first keyframe's control points
+        for (auto& mesh : model->meshes) {
+            size_t numControlPoints = keyFrames.front().ffdControlPoints.size();
+            for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+                if (i < numControlPoints) {
+                    mesh.vertices[i].Position = keyFrames.front().ffdControlPoints[i].originalPosition;
+                }
+                else {
+                    // If there are more vertices than control points, ensure they are reset too
+                    mesh.vertices[i] = originalPositions[i];
+                }
+            }
+            // Update the mesh data
+            mesh.updateMeshData();
+        }
+
+        // Mark animation as finished
+        animationFinished = true;
+    }
+    else {
+        interpolateControlPoints();
+        interpolateKeyFrame();
+        applyFFD();
+    }
 }
 
 void StepAheadAnimationChannel::render(const glm::mat4& view, const glm::mat4& projection) {
@@ -80,7 +120,6 @@ void StepAheadAnimationChannel::interpolateControlPoints() {
     if (keyFrames.empty()) return;
 
     if (keyFrames.size() < 2) {
-        // If there is only one keyframe, use its control points directly
         currentControlPoints = keyFrames.front().ffdControlPoints;
         return;
     }
@@ -104,48 +143,81 @@ void StepAheadAnimationChannel::interpolateControlPoints() {
     for (size_t i = 0; i < prevKeyFrame->ffdControlPoints.size(); ++i) {
         currentControlPoints[i].position = glm::mix(prevKeyFrame->ffdControlPoints[i].position,
             nextKeyFrame->ffdControlPoints[i].position, t);
-        /*
-        // Debugging: Print interpolated control points, saved for later
-        std::cout << "Control Point " << i << ": ("
-            << currentControlPoints[i].position.x << ", "
-            << currentControlPoints[i].position.y << ", "
-            << currentControlPoints[i].position.z << ")\n";
-        */        
+
+        // Keep original positions and weights constant
+        currentControlPoints[i].originalPosition = prevKeyFrame->ffdControlPoints[i].originalPosition;
+        currentControlPoints[i].weight = prevKeyFrame->ffdControlPoints[i].weight;
     }
 }
 
 void StepAheadAnimationChannel::applyFFD() {
-    if (!model) return;
-
-    // Loop through each mesh in the model
-    for (auto& mesh : model->meshes) {
-        // Loop through each vertex in the mesh
-        for (auto& vertex : mesh.vertices) {
-            glm::vec3 newPosition = vertex.Position;
-            // Apply FFD based on the current control points and weight
-            for (const auto& cp : currentControlPoints) {
-                float influence = cp.weight;
-                newPosition += (cp.position - cp.originalPosition) * influence;
-            }
-            vertex.Position = newPosition;
-        }
-    }
-}
-
-void StepAheadAnimationChannel::interpolateKeyFrame() {
-    if (keyFrames.empty()) return;
-
-    if (keyFrames.size() < 2) {
-        // If there is only one keyframe, use its transformations directly
-        interpolatedPosition = keyFrames.front().position;
-        interpolatedRotation = keyFrames.front().rotation;
-        interpolatedScale = keyFrames.front().scale;
-
+    if (!model) {
+        std::cout << "Model not loaded, FFD cannot be applied." << std::endl;
         return;
     }
 
-    KeyFrame* prevKeyFrame = nullptr;
-    KeyFrame* nextKeyFrame = nullptr;
+    glm::vec3 centerOfMassBefore = glm::vec3(0.0f);
+    glm::vec3 centerOfMassAfter = glm::vec3(0.0f);
+    size_t totalVertices = 0;
+
+    // Calculate initial center of mass
+    for (const auto& mesh : model->meshes) {
+        totalVertices += mesh.vertices.size();
+        for (const auto& vertex : mesh.vertices) {
+            centerOfMassBefore += vertex.Position;
+        }
+    }
+    centerOfMassBefore /= static_cast<float>(totalVertices);
+
+    // Apply FFD to the model vertices using control points
+    for (auto& mesh : model->meshes) {
+        for (size_t i = 0; i < mesh.vertices.size(); ++i) {
+            auto& vertex = mesh.vertices[i];
+            glm::vec3 originalPosition = vertex.Position;
+            glm::vec3 displacement = glm::vec3(0.0f);
+            float totalWeight = 0.0f;
+
+            for (const auto& cp : currentControlPoints) {
+                float distance = glm::length(originalPosition - cp.originalPosition);
+                float weight = cp.weight / (distance + 1.0f);
+                displacement += weight * (cp.position - cp.originalPosition);
+                totalWeight += weight;
+            }
+
+            if (totalWeight > 0.0f) {
+                displacement /= totalWeight;
+            }
+
+            glm::vec3 newPosition = originalPosition + displacement;
+            vertex.Position = newPosition;
+            centerOfMassAfter += newPosition;
+        }
+    }
+
+    // Calculate new center of mass
+    centerOfMassAfter /= static_cast<float>(totalVertices);
+
+    // Adjust vertices to maintain the same center of mass
+    glm::vec3 correction = centerOfMassBefore - centerOfMassAfter;
+
+    for (auto& mesh : model->meshes) {
+        for (auto& vertex : mesh.vertices) {
+            vertex.Position += correction;
+        }
+        mesh.updateMeshData();
+    }
+}
+
+
+
+
+
+
+void StepAheadAnimationChannel::interpolateKeyFrame() {
+    if (keyFrames.size() < 2) return;
+
+    const KeyFrame* prevKeyFrame = nullptr;
+    const KeyFrame* nextKeyFrame = nullptr;
 
     for (size_t i = 0; i < keyFrames.size() - 1; ++i) {
         if (currentTime >= keyFrames[i].timestamp && currentTime <= keyFrames[i + 1].timestamp) {
@@ -170,4 +242,13 @@ glm::mat4 StepAheadAnimationChannel::getModelMatrix() const {
     modelMatrix *= glm::toMat4(interpolatedRotation); // Apply rotation
     modelMatrix = glm::scale(modelMatrix, interpolatedScale); // Apply scale
     return modelMatrix;
+}
+
+void StepAheadAnimationChannel::storeOriginalPositions() {
+    originalPositions.clear();
+    for (const auto& mesh : model->meshes) {
+        for (const auto& vertex : mesh.vertices) {
+            originalPositions.push_back(vertex);
+        }
+    }
 }
