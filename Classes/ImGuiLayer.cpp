@@ -291,34 +291,6 @@ void renderStepAheadEditor() {
 void renderCharacterAnimationEditor() {
     ImGui::Begin("Key-Frame Editor");
 
-    static char objFilePath[256] = ""; // Path to OBJ file
-
-    ImGui::InputText("OBJ File Path", objFilePath, IM_ARRAYSIZE(objFilePath));
-
-    if (ImGui::Button("Import OBJ")) {
-        if (selectedChannel && selectedChannel->getType() == CHARACTER_ANIMATION) {
-            std::dynamic_pointer_cast<CharacterAnimationChannel>(selectedChannel)->importObject(objFilePath);
-            std::fill(std::begin(objFilePath), std::end(objFilePath), 0);
-        }
-    }
-
-    ImGui::Separator();
-
-    static char vertexShaderPath[256] = ""; // Path to Vertex shader file
-    static char fragmentShaderPath[256] = ""; // Path to Fragment shader file
-
-    ImGui::InputText("Vertex Shader Path", vertexShaderPath, IM_ARRAYSIZE(vertexShaderPath));
-    ImGui::InputText("Fragment Shader Path", fragmentShaderPath, IM_ARRAYSIZE(fragmentShaderPath));
-
-    if (ImGui::Button("Load Shader")) {
-        if (selectedChannel && selectedChannel->getType() == CHARACTER_ANIMATION)
-        {
-            std::dynamic_pointer_cast<CharacterAnimationChannel>(selectedChannel)->setupShader(vertexShaderPath, fragmentShaderPath);
-            std::fill(std::begin(vertexShaderPath), std::end(vertexShaderPath), 0);
-            std::fill(std::begin(fragmentShaderPath), std::end(fragmentShaderPath), 0);
-        }
-    }
-
     ImGui::Separator();
 
     static float timestamp = 0.0f;

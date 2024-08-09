@@ -1,47 +1,26 @@
 #include "../Headers/CharacterAnimationChannel.h"
 
-void CharacterAnimationChannel::update(float deltaTime) {
-    if (!keyFrames.empty()) {
-        // Assuming keyFrames[0] holds the first keyframe
-        const auto& firstKeyFrame = keyFrames[0];
+CharacterAnimationChannel::CharacterAnimationChannel(const std::string& name)
+    : Channel(name, ChannelType::CHARACTER_ANIMATION)
+{
+    // Initialize interpolated position, rotation, and scale
+    interpolatedPosition = glm::vec3(0.0f);
+    interpolatedRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    interpolatedScale = glm::vec3(1.0f);
 
-        // Initialize interpolated values based on the first keyframe
-        interpolatedPosition = firstKeyFrame.position;
-        interpolatedRotation = firstKeyFrame.rotation;
-        interpolatedScale = firstKeyFrame.scale;
-    }
+    // Create and initialize the StickFigure character
+    character = new StickFigure();
+}
+
+void CharacterAnimationChannel::update(float deltaTime) {
+    // implementation
 }
 
 void CharacterAnimationChannel::render(const glm::mat4& view, const glm::mat4& projection) {
-    if (!shader || !model) return;
+    if (!character) return;
+    // implementation
 
-    shader->use();
-
-    shader->setMat4("view", view);
-    shader->setMat4("projection", projection);
-
-    glm::mat4 modelMatrix = getModelMatrix();
-    shader->setMat4("model", modelMatrix);
-
-    // Set light properties
-    shader->setVec3("lightPos", glm::vec3(10.0f, 10.0f, 10.0f)); // Example light position
-    shader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f)); // White light
-
-    model->Draw(*shader);
-}
-
-void CharacterAnimationChannel::importObject(const std::string& path) {
-    if (model) {
-        delete model;
-    }
-    model = new Model(path.c_str());
-}
-
-void CharacterAnimationChannel::setupShader(const std::string& vertexPath, const std::string& fragmentPath) {
-    if (shader) {
-        delete shader;
-    }
-    shader = new Shader(("../Shaders/" + vertexPath).c_str(), ("../Shaders/" + fragmentPath).c_str());
+    character->render(view, projection);
 }
 
 glm::mat4 CharacterAnimationChannel::getModelMatrix() const {
