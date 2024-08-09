@@ -208,11 +208,6 @@ void StepAheadAnimationChannel::applyFFD() {
     }
 }
 
-
-
-
-
-
 void StepAheadAnimationChannel::interpolateKeyFrame() {
     if (keyFrames.size() < 2) return;
 

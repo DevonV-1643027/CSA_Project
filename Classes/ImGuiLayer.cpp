@@ -96,8 +96,6 @@ void renderStepAheadEditor() {
     ImGui::Begin("Key-Frame Editor");
 
     static char objFilePath[256] = ""; // Path to OBJ file
-    static bool importSuccess = false; // To store the result of import
-    static char importStatus[64] = ""; // To display the import status message
 
     ImGui::InputText("OBJ File Path", objFilePath, IM_ARRAYSIZE(objFilePath));
 
@@ -106,14 +104,6 @@ void renderStepAheadEditor() {
             std::dynamic_pointer_cast<StepAheadAnimationChannel>(selectedChannel)->importObject(objFilePath);
             std::fill(std::begin(objFilePath), std::end(objFilePath), 0);
         }
-    }
-
-    // Display import status message
-    if (importSuccess) {
-        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), importStatus); // Green for success
-    }
-    else if (strlen(importStatus) > 0) {
-        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), importStatus); // Red for failure
     }
 
     ImGui::Separator();
@@ -298,6 +288,161 @@ void renderStepAheadEditor() {
     ImGui::End();
 }
 
+void renderCharacterAnimationEditor() {
+    ImGui::Begin("Key-Frame Editor");
+
+    static char objFilePath[256] = ""; // Path to OBJ file
+
+    ImGui::InputText("OBJ File Path", objFilePath, IM_ARRAYSIZE(objFilePath));
+
+    if (ImGui::Button("Import OBJ")) {
+        if (selectedChannel && selectedChannel->getType() == CHARACTER_ANIMATION) {
+            std::dynamic_pointer_cast<CharacterAnimationChannel>(selectedChannel)->importObject(objFilePath);
+            std::fill(std::begin(objFilePath), std::end(objFilePath), 0);
+        }
+    }
+
+    ImGui::Separator();
+
+    static char vertexShaderPath[256] = ""; // Path to Vertex shader file
+    static char fragmentShaderPath[256] = ""; // Path to Fragment shader file
+
+    ImGui::InputText("Vertex Shader Path", vertexShaderPath, IM_ARRAYSIZE(vertexShaderPath));
+    ImGui::InputText("Fragment Shader Path", fragmentShaderPath, IM_ARRAYSIZE(fragmentShaderPath));
+
+    if (ImGui::Button("Load Shader")) {
+        if (selectedChannel && selectedChannel->getType() == CHARACTER_ANIMATION)
+        {
+            std::dynamic_pointer_cast<CharacterAnimationChannel>(selectedChannel)->setupShader(vertexShaderPath, fragmentShaderPath);
+            std::fill(std::begin(vertexShaderPath), std::end(vertexShaderPath), 0);
+            std::fill(std::begin(fragmentShaderPath), std::end(fragmentShaderPath), 0);
+        }
+    }
+
+    ImGui::Separator();
+
+    static float timestamp = 0.0f;
+    static float position[3] = { 0.0f, 0.0f, 0.0f };
+    static float rotation[3] = { 0.0f, 0.0f, 0.0f }; // Euler angles
+    static float scale[3] = { 1.0f, 1.0f, 1.0f };
+    static int frameRate = 10; // Default frame rate
+
+    ImGui::InputFloat("Time", &timestamp);
+    ImGui::InputFloat3("Position", position);
+    ImGui::InputFloat3("Rotation", rotation); // Input Euler angles
+    ImGui::InputFloat3("Scale", scale);
+    ImGui::InputInt("Frame Rate", &frameRate); // Input frame rate
+
+    ImGui::Separator();
+
+    if (ImGui::Button("Close Step-Ahead Editor")) {
+        ImGui::CloseCurrentPopup();
+    }
+
+    if (ImGui::Button("Set Frame Rate")) {
+        if (selectedChannel) {
+            selectedChannel->setFrameRate(frameRate);
+        }
+    }
+
+    if (ImGui::Button("Add Key-Frame")) {
+        // Convert Euler angles to quaternion
+        glm::quat rotQuat = eulerToQuaternion(glm::radians(rotation[0]), glm::radians(rotation[1]), glm::radians(rotation[2]));
+
+        // Add new key-frame logic
+        KeyFrame newKeyFrame(timestamp, glm::vec3(position[0], position[1], position[2]),
+            rotQuat,
+            glm::vec3(scale[0], scale[1], scale[2]));
+        if (selectedChannel) {
+            selectedChannel->addKeyFrame(newKeyFrame);
+            // Clear input fields
+            timestamp = 0.0f;
+            position[0] = position[1] = position[2] = 0.0f;
+            rotation[0] = rotation[1] = rotation[2] = 0.0f;
+            scale[0] = scale[1] = scale[2] = 1.0f;
+        }
+    }
+
+    // New input for keyframe file path
+    static char keyFrameFilePath[256] = "";
+    ImGui::InputText("KeyFrame File Path", keyFrameFilePath, IM_ARRAYSIZE(keyFrameFilePath));
+
+    if (ImGui::Button("Load KeyFrames")) {
+        if (selectedChannel) {
+            selectedChannel->loadKeyFramesFromFile(keyFrameFilePath);
+        }
+    }
+
+    ImGui::Separator();
+
+    ImGui::Text("Existing Key-Frames");
+    static int selectedKeyFrameIndex = -1;
+    static int selectedControlPointIndex = -1;
+    static float ffdPosition[3] = { 0.0f, 0.0f, 0.0f };
+    static float ffdOriginalPosition[3] = { 0.0f, 0.0f, 0.0f };
+    static float ffdWeight = 1.0f;
+
+    if (selectedChannel) {
+        if (ImGui::BeginListBox("##keyframeList", ImVec2(-FLT_MIN, 10 * ImGui::GetTextLineHeightWithSpacing()))) {
+            for (int i = 0; i < selectedChannel->getKeyFrames().size(); ++i) {
+                const auto& kf = selectedChannel->getKeyFrames()[i];
+                glm::vec3 eulerRot = glm::degrees(quaternionToEuler(kf.rotation)); // Convert from radians to degrees
+
+                // Apply rounding
+                std::string keyframeLabel = "Time: " + formatFloat(kf.timestamp, 2) +
+                    ", Position: (" + formatFloat(kf.position.x, 2) + ", " + formatFloat(kf.position.y, 2) + ", " + formatFloat(kf.position.z, 2) + ")" +
+                    ", Rotation: (" + formatFloat(eulerRot.x, 1) + ", " + formatFloat(eulerRot.y, 1) + ", " + formatFloat(eulerRot.z, 1) + ")" +
+                    ", Scale: (" + formatFloat(kf.scale.x, 2) + ", " + formatFloat(kf.scale.y, 2) + ", " + formatFloat(kf.scale.z, 2) + ")";
+                if (ImGui::Selectable(keyframeLabel.c_str(), selectedKeyFrameIndex == i)) {
+                    selectedKeyFrameIndex = i;
+                }
+            }
+            ImGui::EndListBox();
+        }
+
+        if (selectedKeyFrameIndex != -1) {
+            KeyFrame& kf = selectedChannel->getKeyFrames()[selectedKeyFrameIndex];
+
+            timestamp = kf.timestamp;
+            position[0] = kf.position.x;
+            position[1] = kf.position.y;
+            position[2] = kf.position.z;
+            glm::vec3 eulerRot = glm::degrees(quaternionToEuler(kf.rotation)); // Convert from radians to degrees
+            rotation[0] = eulerRot.x;
+            rotation[1] = eulerRot.y;
+            rotation[2] = eulerRot.z;
+            scale[0] = kf.scale.x;
+            scale[1] = kf.scale.y;
+            scale[2] = kf.scale.z;
+
+            if (ImGui::Button("Update Key-Frame")) {
+                glm::quat rotQuat = eulerToQuaternion(glm::radians(rotation[0]), glm::radians(rotation[1]), glm::radians(rotation[2]));
+                KeyFrame updatedKeyFrame(timestamp, glm::vec3(position[0], position[1], position[2]), rotQuat, glm::vec3(scale[0], scale[1], scale[2]));
+                selectedChannel->updateKeyFrame(selectedKeyFrameIndex, updatedKeyFrame);
+            }
+
+            if (ImGui::Button("Remove Key-Frame")) {
+                selectedChannel->removeKeyFrame(selectedKeyFrameIndex);
+                selectedKeyFrameIndex = -1; // Clear selection
+            }
+
+            if (ImGui::Button("Move Up") && selectedKeyFrameIndex > 0) {
+                selectedChannel->swapKeyFrames(selectedKeyFrameIndex, selectedKeyFrameIndex - 1);
+                --selectedKeyFrameIndex;
+            }
+
+            if (ImGui::Button("Move Down") && selectedKeyFrameIndex < selectedChannel->getKeyFrames().size() - 1) {
+                selectedChannel->swapKeyFrames(selectedKeyFrameIndex, selectedKeyFrameIndex + 1);
+                ++selectedKeyFrameIndex;
+            }
+
+            ImGui::Separator();
+        }
+    }
+
+    ImGui::End();
+}
+
 void renderKeyFrameEditor() {
     ImGui::Begin("Key-Frame Editor");
 
@@ -413,6 +558,7 @@ void renderChannelManager() {
     static bool showKeyFrameEditor = false;
     static bool showBackgroundEditor = false;
     static bool showStepAheadEditor = false;
+    static bool showCharacterAnimationEditor = false;
 
     ImGui::InputText("Channel Name##new", channelName, IM_ARRAYSIZE(channelName));
     ImGui::Combo("Channel Type", &channelType, "Background\0Virtual Camera\0Step Ahead Animation\0Character Animation\0");
@@ -483,6 +629,10 @@ void renderChannelManager() {
 				showStepAheadEditor = true;
 				ImGui::OpenPopup(("Step Ahead Editor##" + std::to_string(selectedChannelIndex)).c_str());
 			}
+            else if (selectedChannel->getType() == CHARACTER_ANIMATION) {
+				showCharacterAnimationEditor = true;
+				ImGui::OpenPopup(("Character-Animation Editor##" + std::to_string(selectedChannelIndex)).c_str());
+			}            
             else {
 				showKeyFrameEditor = true;
                 ImGui::OpenPopup(("Key-Frame Editor##" + std::to_string(selectedChannelIndex)).c_str());
@@ -522,6 +672,15 @@ void renderChannelManager() {
 			}
 			ImGui::EndPopup();
 		}
+
+        if (ImGui::BeginPopupModal(("Character-Animation Editor##" + std::to_string(selectedChannelIndex)).c_str(), &showCharacterAnimationEditor, ImGuiWindowFlags_AlwaysAutoResize)) {
+            renderCharacterAnimationEditor();
+            if (ImGui::Button("Close")) {
+				showCharacterAnimationEditor = false;
+				ImGui::CloseCurrentPopup();
+			}
+            ImGui::EndPopup();
+        }
 
         if (ImGui::BeginPopupModal(("Key-Frame Editor##" + std::to_string(selectedChannelIndex)).c_str(), &showKeyFrameEditor, ImGuiWindowFlags_AlwaysAutoResize)) {
             renderKeyFrameEditor();
