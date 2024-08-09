@@ -4,12 +4,14 @@ StickFigure::StickFigure() {
     // Define the skeleton structure with joint names, positions, rotations, and scales
     skeleton.push_back(createJoint("Head", glm::vec3(0.0f, 0.6f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::vec3(0.7f, 0.5f, 1.5f)));
     skeleton.push_back(createJoint("Torso", glm::vec3(0.0f, 1.0f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.5f, 0.5f)));
-    skeleton.push_back(createJoint("Left Arm", glm::vec3(-0.18f, 0.25f, 0.0f), glm::rotate(glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f)), glm::vec3(0.25f)));
-    skeleton.push_back(createJoint("Right Arm", glm::vec3(0.18f, 0.25f, 0.0f), glm::rotate(glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::radians(-45.0f), glm::vec3(0.0f, 0.0f, 1.0f)), glm::vec3(0.25f)));
+    skeleton.push_back(createJoint("Left Arm", glm::vec3(-0.18f, 0.15f, 0.0f), glm::rotate(glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f)), glm::vec3(0.25f)));
+    skeleton.push_back(createJoint("Right Arm", glm::vec3(0.18f, 0.15f, 0.0f), glm::rotate(glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::radians(-45.0f), glm::vec3(0.0f, 0.0f, 1.0f)), glm::vec3(0.25f)));
     skeleton.push_back(createJoint("Left Leg", glm::vec3(-0.1f, -0.55f, 0.0f), glm::rotate(glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(0.25f, 0.7f, 0.25f)));
     skeleton.push_back(createJoint("Right Leg", glm::vec3(0.1f, -0.55f, 0.0f), glm::rotate(glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(0.25f, 0.7f, 0.25f)));
 
-
+    // Adding hands as child joints of the arms
+    skeleton.push_back(createJoint("Left Hand", glm::vec3(0.0f, 0.8f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::vec3(0.5f, 0.7f, 0.5f)));
+    skeleton.push_back(createJoint("Right Hand", glm::vec3(0.0f, 0.8f, 0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::vec3(0.5f, 0.7f, 0.5f)));
 
     // Define parent-child relationships
     skeleton[1].childrenIndices.push_back(0); // Torso -> Head
@@ -17,6 +19,8 @@ StickFigure::StickFigure() {
     skeleton[1].childrenIndices.push_back(3); // Torso -> Right Arm
     skeleton[1].childrenIndices.push_back(4); // Torso -> Left Leg
     skeleton[1].childrenIndices.push_back(5); // Torso -> Right Leg
+    skeleton[2].childrenIndices.push_back(6); // Left Arm -> Left Hand
+    skeleton[3].childrenIndices.push_back(7); // Right Arm -> Right Hand
 
     // Shaders
     shader = new Shader("../Shaders/stick_figure.vs", "../Shaders/stick_figure.fs");
@@ -35,24 +39,26 @@ glm::mat4 StickFigure::getJointModelMatrix(const Joint& joint) {
 
 void StickFigure::render(const glm::mat4& view, const glm::mat4& projection) {
     if (!shader) return;
-    
-    for (size_t i = 0; i < skeleton.size(); ++i) {
-        const auto& joint = skeleton[i];
-        glm::mat4 modelMatrix = getJointModelMatrix(joint);
 
-        if (i != 1) {  // If not the torso (assuming the torso is the root at index 1)
-            int parentIndex = getParentIndex(i);
-            modelMatrix = getJointModelMatrix(skeleton[parentIndex]) * modelMatrix;
-        }
+    std::function<void(int, glm::mat4)> renderJoint = [&](int jointIndex, glm::mat4 parentMatrix) {
+        const auto& joint = skeleton[jointIndex];
+        glm::mat4 modelMatrix = parentMatrix * getJointModelMatrix(joint);
 
         if (joint.name == "Head") {
-            drawSphere(modelMatrix, view, projection); // Draw head
+            drawSphere(modelMatrix, view, projection); // Draw head or hand
         }
         else {
             drawCylinder(modelMatrix, view, projection); // Draw limbs
         }
-    }
+
+        for (int childIndex : joint.childrenIndices) {
+            renderJoint(childIndex, modelMatrix);
+        }
+        };
+
+    renderJoint(1, glm::mat4(1.0f)); // Start with the torso as the root (index 1)
 }
+
 
 void StickFigure::drawCylinder(const glm::mat4& modelMatrix, const glm::mat4& view, const glm::mat4& projection) {
     // Set the model, view, and projection matrices in the shader
